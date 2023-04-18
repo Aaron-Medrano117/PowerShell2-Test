@@ -1,4 +1,4 @@
-#Einstein & Jefferson
+#OldCompany & NewCompany
 
 #Gather Mailbox Stats
 $OutputCSVFolderPath = Read-Host "What is the folder path to store the file?"
@@ -109,11 +109,11 @@ foreach ($user in $matchedMailboxes) {
     $progresspercentcomplete = [math]::Round((($progresscounter / $progressref)*100),2)
     $progressStatus = "["+$progresscounter+" / "+$progressref+"]"
     Write-progress -PercentComplete $progresspercentcomplete -Status $progressStatus -Activity "Gathering Mailbox Details for $($user.DisplayName_Source)"
-    $NewUPN = $user.CustomAttribute7_Source + "@jefferson.edu"
-    $CampusKeyUPN = $user.CampusKey + "@jefferson.edu"
+    $NewUPN = $user.CustomAttribute7_Source + "@example.org"
+    $CampusKeyUPN = $user.CampusKey + "@example.org"
     $addressSplit = $user.PrimarySmtpAddress_Source -split "@"
-    $ehnPrimarySMTPAddress = $addressSplit[0] + "-ehn@jefferson.edu"
-    $newPrimarySMTPAddress = $addressSplit[0] + "@jefferson.edu"
+    $ehnPrimarySMTPAddress = $addressSplit[0] + "-old@example.org"
+    $newPrimarySMTPAddress = $addressSplit[0] + "@example.org"
     $PrimarySMTPAddress = $user.primarysmtpaddress_Source
 
     # Campus Key Match
@@ -348,11 +348,11 @@ foreach ($user in $matchedMailboxes) {
     $progresspercentcomplete = [math]::Round((($progresscounter / $progressref)*100),2)
     $progressStatus = "["+$progresscounter+" / "+$progressref+"]"
     Write-progress -PercentComplete $progresspercentcomplete -Status $progressStatus -Activity "Gathering Mailbox Details for $($user.DisplayName_Source)"
-    $NewUPN = $user.CustomAttribute7_Source + "@jefferson.edu"
-    $CampusKeyUPN = $user.CampusKey + "@jefferson.edu"
+    $NewUPN = $user.CustomAttribute7_Source + "@example.org"
+    $CampusKeyUPN = $user.CampusKey + "@example.org"
     $addressSplit = $user.PrimarySmtpAddress_Source -split "@"
-    $ehnPrimarySMTPAddress = $addressSplit[0] + "-ehn@jefferson.edu"
-    $newPrimarySMTPAddress = $addressSplit[0] + "@jefferson.edu"
+    $ehnPrimarySMTPAddress = $addressSplit[0] + "-old@example.org"
+    $newPrimarySMTPAddress = $addressSplit[0] + "@example.org"
 
     # Campus Key Match
     if ($msoluser = Get-Msoluser -UserPrincipalName $CampusKeyUPN -ErrorAction SilentlyContinue) {
@@ -494,13 +494,13 @@ foreach ($mailbox in $mailboxes) {
 $ConflictingUsers | Export-Csv -encoding UTF8 -NoTypeInformation $OutputCSVFilePath
 
 #Check For Conflicting Users Across Tenants Based on DisplayName
-$EinsteinMailboxes = import-csv
+$OldCompanyMailboxes = import-csv
 
 $matchedConflictingUsers = @()
 #ProgressBar
-$progressref = ($EinsteinMailboxes).count
+$progressref = ($OldCompanyMailboxes).count
 $progresscounter = 0
-foreach ($mailbox in $EinsteinMailboxes) {
+foreach ($mailbox in $OldCompanyMailboxes) {
     #ProgressBar2
     $progresscounter += 1
     $progresspercentcomplete = [math]::Round((($progresscounter / $progressref)*100),2)
@@ -547,15 +547,15 @@ $matchedConflictingUsers | Export-Csv -encoding UTF8 -NoTypeInformation $OutputC
 
 
 #Check For Conflicting Users Across Tenants Based on PrimarySMTPAddress prefix
-$EinsteinMailboxes = import-csv
-$JeffersonMailboxes = Import-Csv
+$OldCompanyMailboxes = import-csv
+$NewCompanyMailboxes = Import-Csv
 
 $matchedConflictingUsers = @()
 #ProgressBar
-$progressref = ($EinsteinMailboxes).count
+$progressref = ($OldCompanyMailboxes).count
 $progresscounter = 0
 
-foreach ($mailbox in $EinsteinMailboxes){
+foreach ($mailbox in $OldCompanyMailboxes){
     #ProgressBar2
     $progresscounter += 1
     $progresspercentcomplete = [math]::Round((($progresscounter / $progressref)*100),2)
@@ -564,7 +564,7 @@ foreach ($mailbox in $EinsteinMailboxes){
     $newPrimarySMTPAddressSplit = $mailbox.PrimarySmtpAddress -split "@"
     $prefixSMTPAddress = $newPrimarySMTPAddressSplit[0]
 
-    if ($matchedUsers = $JeffersonMailboxes | Where-Object {$_.PrimarySmtpAddress -like "*$prefixSMTPAddress*"})
+    if ($matchedUsers = $NewCompanyMailboxes | Where-Object {$_.PrimarySmtpAddress -like "*$prefixSMTPAddress*"})
     {
         Write-Host "Matched User found for $($mailbox.DisplayName) " -ForegroundColor Yellow -NoNewline
 
@@ -597,31 +597,31 @@ foreach ($mailbox in $EinsteinMailboxes){
 $matchedConflictingUsers | Export-Csv -encoding UTF8 -NoTypeInformation $OutputCSVFilePath
 
 #Check For Conflicting Users Across Tenants Based on PrimarySMTPAddress prefix 2 Exact Match
-$EinsteinMailboxes = import-csv
-$JeffersonMailboxes = Import-Csv
+$OldCompanyMailboxes = import-csv
+$NewCompanyMailboxes = Import-Csv
 
 $matchedConflictingUsers = @()
 #ProgressBar
-$progressref = ($EinsteinMailboxes).count
+$progressref = ($OldCompanyMailboxes).count
 $progresscounter = 0
 
-foreach ($mailbox in $EinsteinMailboxes){
+foreach ($mailbox in $OldCompanyMailboxes){
     #ProgressBar2
     $progresscounter += 1
     $progresspercentcomplete = [math]::Round((($progresscounter / $progressref)*100),2)
     $progressStatus = "["+$progresscounter+" / "+$progressref+"]"
     Write-progress -PercentComplete $progresspercentcomplete -Status $progressStatus -Activity "Checking for Mailbox Conflicting Name for $($mailbox.DisplayName)"
-    $einsteinPrimarySMTPAddressSplit = $mailbox.PrimarySmtpAddress -split "@"
-    $einsteinprefixSMTPAddress = $einsteinPrimarySMTPAddressSplit[0]
+    $OldCompanyPrimarySMTPAddressSplit = $mailbox.PrimarySmtpAddress -split "@"
+    $OldCompanyprefixSMTPAddress = $OldCompanyPrimarySMTPAddressSplit[0]
 
-    if ($matchedUsers = $JeffersonMailboxes | Where-Object {$_.PrimarySmtpAddress -like "*$einsteinprefixSMTPAddress*"})
+    if ($matchedUsers = $NewCompanyMailboxes | Where-Object {$_.PrimarySmtpAddress -like "*$OldCompanyprefixSMTPAddress*"})
     {
         Write-Host "Matched User found for $($mailbox.DisplayName) " -ForegroundColor Yellow -NoNewline
 
         foreach ($user in $matchedUsers) {
-            $jeffersonPrimarySMTPAddressSplit = $user.PrimarySmtpAddress -split "@"
-            $jeffersonprefixSMTPAddress = $jeffersonPrimarySMTPAddressSplit[0]
-            if ($einsteinprefixSMTPAddress -eq $jeffersonprefixSMTPAddress) {
+            $NewCompanyPrimarySMTPAddressSplit = $user.PrimarySmtpAddress -split "@"
+            $NewCompanyprefixSMTPAddress = $NewCompanyPrimarySMTPAddressSplit[0]
+            if ($OldCompanyprefixSMTPAddress -eq $NewCompanyprefixSMTPAddress) {
                 $currentuser = new-object PSObject
                 $currentuser | add-member -type noteproperty -name "DisplayName_Source" -Value $mailbox.DisplayName
                 $currentuser | add-member -type noteproperty -name "Name_Source" -Value $mailbox.Name
@@ -756,12 +756,12 @@ function Get-GroupDetails {
     $allGroupDetails | Export-Csv -NoTypeInformation -Encoding utf8 $OutputCSVFilePath
 }
 
-$EinsteinGroups = import-csv
+$OldCompanyGroups = import-csv
 #ProgressBar
-$progressref = ($EinsteinGroups).count
+$progressref = ($OldCompanyGroups).count
 $progresscounter = 0
 
-foreach ($group in $EinsteinGroups){
+foreach ($group in $OldCompanyGroups){
     #ProgressBar2
     $progresscounter += 1
     $progresspercentcomplete = [math]::Round((($progresscounter / $progressref)*100),2)
@@ -788,13 +788,13 @@ foreach ($group in $EinsteinGroups){
 }
 
 #Check For Conflicting Groups Across Tenants Based on DisplayName
-$EinsteinGroups = import-csv
+$OldCompanyGroups = import-csv
 $matchedConflictingGroups = @()
 #ProgressBar
-$progressref = ($EinsteinGroups).count
+$progressref = ($OldCompanyGroups).count
 $progresscounter = 0
 
-foreach ($group in $EinsteinGroups){
+foreach ($group in $OldCompanyGroups){
     #ProgressBar2
     $progresscounter += 1
     $progresspercentcomplete = [math]::Round((($progresscounter / $progressref)*100),2)
@@ -850,12 +850,12 @@ foreach ($group in $EinsteinGroups){
 }
 $matchedConflictingGroups | Export-Csv -encoding UTF8 -NoTypeInformation $OutputCSVFilePath
 
-## match Groups to Jefferson from Einstein
+## match Groups to NewCompany from OldCompany
 
-$einsteinGroups = Import-Csv 
-$progressref = ($einsteinGroups).count
+$OldCompanyGroups = Import-Csv 
+$progressref = ($OldCompanyGroups).count
 $progresscounter = 0
-foreach ($group in $einsteinGroups) {
+foreach ($group in $OldCompanyGroups) {
     $progresscounter += 1
     $progresspercentcomplete = [math]::Round((($progresscounter / $progressref)*100),2)
     $progressStatus = "["+$progresscounter+" / "+$progressref+"]"
@@ -863,8 +863,8 @@ foreach ($group in $einsteinGroups) {
 
     $addressSplits = $group.PrimarySMTPAddress
     $groupCheck = @()
-    $ehnMatch = $addressSplits[0] + "-ehn@jefferson.edu"
-    $newPrimarySMTPAddress = $addressSplits[0] + "@jefferson.edu"
+    $ehnMatch = $addressSplits[0] + "-old@example.org"
+    $newPrimarySMTPAddress = $addressSplits[0] + "@example.org"
     $ehndisplayName = $group.DisplayName + "- EHN"
     if ($groupCheck = Get-Recipient $ehnMatch -ea silentlycontinue) {
         $EmailAddresses = $groupCheck | select -ExpandProperty EmailAddresses
@@ -917,9 +917,9 @@ foreach ($group in $einsteinGroups) {
 }
 
 #Update GrantSendOnBehalf Perms to Mailboxes
-$progressref = ($einsteinTJMBXStats | ? {$_.GrantSendOnBehalfTo}).count
+$progressref = ($OldCompanyTJMBXStats | ? {$_.GrantSendOnBehalfTo}).count
 $progresscounter = 0
-foreach ($user in $einsteinTJMBXStats | ? {$_.GrantSendOnBehalfTo}) {
+foreach ($user in $OldCompanyTJMBXStats | ? {$_.GrantSendOnBehalfTo}) {
     $progresscounter += 1
     $progresspercentcomplete = [math]::Round((($progresscounter / $progressref)*100),2)
     $progressStatus = "["+$progresscounter+" / "+$progressref+"]"
@@ -1560,13 +1560,13 @@ foreach ($user in $matchedDistributionGroups) {
 }
 
 #Match Users to Teams and SharePoint Usage
-$einsteinTJMBXStats = Import-Csv
+$OldCompanyTJMBXStats = Import-Csv
 $teamsUserUsage = Import-Csv
 $sharePointUserUsage = Import-Csv
-$progressref = ($einsteinTJMBXStats).count
+$progressref = ($OldCompanyTJMBXStats).count
 $progresscounter = 0
 
-foreach ($user in $einsteinTJMBXStats) {
+foreach ($user in $OldCompanyTJMBXStats) {
     $progresscounter += 1
     $progresspercentcomplete = [math]::Round((($progresscounter / $progressref)*100),2)
     $progressStatus = "["+$progresscounter+" / "+$progressref+"]"
@@ -1613,11 +1613,11 @@ foreach ($user in $einsteinTJMBXStats) {
     }
 }
 
-## Update MailboxData in Einstein with FullAccess and SendAs
-$einsteinTJMBXStats = Import-Csv 
-$progressref = $einsteinTJMBXStats.count
+## Update MailboxData in OldCompany with FullAccess and SendAs
+$OldCompanyTJMBXStats = Import-Csv 
+$progressref = $OldCompanyTJMBXStats.count
 $progresscounter = 0
-foreach ($user in $einsteinTJMBXStats) {
+foreach ($user in $OldCompanyTJMBXStats) {
     $progresscounter += 1
     $progresspercentcomplete = [math]::Round((($progresscounter / $progressref)*100),2)
     $progressStatus = "["+$progresscounter+" / "+$progressref+"]"
@@ -1639,11 +1639,11 @@ foreach ($user in $einsteinTJMBXStats) {
     }
 }
 
-## Update MailboxData in Einstein with Forwarding
-$einsteinTJMBXStats = Import-Csv 
-$progressref = $einsteinTJMBXStats.count
+## Update MailboxData in OldCompany with Forwarding
+$OldCompanyTJMBXStats = Import-Csv 
+$progressref = $OldCompanyTJMBXStats.count
 $progresscounter = 0
-foreach ($user in $einsteinTJMBXStats) {
+foreach ($user in $OldCompanyTJMBXStats) {
     $progresscounter += 1
     $progresspercentcomplete = [math]::Round((($progresscounter / $progressref)*100),2)
     $progressStatus = "["+$progresscounter+" / "+$progressref+"]"
@@ -1660,19 +1660,19 @@ foreach ($user in $einsteinTJMBXStats) {
     }
 }
 
-## match Non-UserMailboxes to Jefferson from Einstein
-$einsteinNonUserMailboxes = Import-Csv 
-$progressref = ($einsteinNonUserMailboxes).count
+## match Non-UserMailboxes to NewCompany from OldCompany
+$OldCompanyNonUserMailboxes = Import-Csv 
+$progressref = ($OldCompanyNonUserMailboxes).count
 $progresscounter = 0
-foreach ($user in $einsteinNonUserMailboxes) {
+foreach ($user in $OldCompanyNonUserMailboxes) {
     $progresscounter += 1
     $progresspercentcomplete = [math]::Round((($progresscounter / $progressref)*100),2)
     $progressStatus = "["+$progresscounter+" / "+$progressref+"]"
     Write-progress -PercentComplete $progresspercentcomplete -Status $progressStatus -Activity "Gathering Mailbox Details for $($user.DisplayName)"
     $addressSplits = $user.PrimarySMTPAddress
-    $newPrimarySMTPAddress = $addressSplits[0] + "-ehn@jefferson.edu"
+    $newPrimarySMTPAddress = $addressSplits[0] + "-old@example.org"
     $newDisplayName = $user.DisplayName + " - EHN"
-    $newAlias = $user.alias +"-ehn"
+    $newAlias = $user.alias +"-old"
 
     $mailboxCheck = @()
     if ($mailboxCheck = Get-Recipient $newPrimarySMTPAddress -ea silentlycontinue) {
@@ -1726,9 +1726,9 @@ foreach ($user in $einsteinNonUserMailboxes) {
 }
 
 #Gather SharePoint Details
-$progressref = ($einsteinMailboxes).count
+$progressref = ($OldCompanyMailboxes).count
 $progresscounter = 0
-foreach ($user in $einsteinMailboxes) {
+foreach ($user in $OldCompanyMailboxes) {
     $progresscounter += 1
     $progresspercentcomplete = [math]::Round((($progresscounter / $progressref)*100),2)
     $progressStatus = "["+$progresscounter+" / "+$progressref+"]"
@@ -1830,7 +1830,7 @@ foreach ($dl in $O365Groups) {
 
     #Set Variables
     $Addresssplit = $dl.PrimarySMTPAddress_Source -split "@"
-    $DestinationPrimarySMTPAddress = $addressSplit[0] + "@jefferson.edu"
+    $DestinationPrimarySMTPAddress = $addressSplit[0] + "@example.org"
     $destinationDisplayName = $dl.DisplayName_Source + " - EHN"
 
     #Progress Bar
@@ -1899,7 +1899,7 @@ foreach ($dl in $O365Groups) {
 	}
 }
 
-## match Groups to Jefferson from Einstein
+## match Groups to NewCompany from OldCompany
 $O365Groups = Import-Csv 
 $progressref = ($O365Groups).count
 $progresscounter = 0
@@ -1950,7 +1950,7 @@ foreach ($group in $O365Groups) {
     }
 }
 
-## Update GroupsData in Einstein with Owners and Members
+## Update GroupsData in OldCompany with Owners and Members
 $O365Groups = Import-Csv 
 $progressref = ($O365Groups).count
 $progresscounter = 0
@@ -1971,7 +1971,7 @@ foreach ($group in $O365Groups) {
     }
 }
 
-## Update GroupsData in Einstein with Owners
+## Update GroupsData in OldCompany with Owners
 $O365Groups = Import-Csv 
 $progressref = ($O365Groups | ?{$_.GroupOwners}).count
 $progresscounter = 0
@@ -1990,7 +1990,7 @@ foreach ($group in ($O365Groups | ?{$_.GroupOwners})) {
     $group | add-member -type noteproperty -name "GroupOwners" -Value ($groupOwners -join ";") -Force
 }
 
-# Add Migration Account as Owner - Einstein
+# Add Migration Account as Owner - OldCompany
 $progressref = ($O365Groups).count
 $progresscounter = 0
 foreach ($group in $O365Groups) {
@@ -2002,7 +2002,7 @@ foreach ($group in $O365Groups) {
     Add-UnifiedGroupLinks -Identity $group.name -LinkType Owner -Links "Migration_serviceaccount1@ehn.onmicrosoft.com" 
 }
 
-# Add Migration Account as Owner - Jefferson
+# Add Migration Account as Owner - NewCompany
 $progressref = ($O365Groups).count
 $progresscounter = 0
 foreach ($group in $O365Groups) {
@@ -2014,13 +2014,13 @@ foreach ($group in $O365Groups) {
     Add-UnifiedGroupLinks -Identity $group.name -LinkType Owner -Links "MigrationSvc@tjuv.onmicrosoft.com" 
 }
 
-# Add Migration Account as Owner - Jefferson - REmaining EHN accounts
+# Add Migration Account as Owner - NewCompany - REmaining EHN accounts
 $progressref = ($O365Groups).count
 $progresscounter = 0
 foreach ($group in $O365Groups) {
     #Set Variables
     $Addresssplit = $dl.PrimarySMTPAddress_Source -split "@"
-    $DestinationPrimarySMTPAddress = $addressSplit[0] + "@jefferson.edu"
+    $DestinationPrimarySMTPAddress = $addressSplit[0] + "@example.org"
     $destinationDisplayName = $dl.DisplayName_Source + " - EHN"
 
     $progresscounter += 1
@@ -2031,7 +2031,7 @@ foreach ($group in $O365Groups) {
     Add-UnifiedGroupLinks -Identity $DestinationPrimarySMTPAddress -LinkType Owner -Links "MigrationSvc@tjuv.onmicrosoft.com" 
 }
 
-# Add Migration Account as Owner - Einstein - From MigWiz Report
+# Add Migration Account as Owner - OldCompany - From MigWiz Report
 $progressref = ($addOwnersToTeams).count
 $progresscounter = 0
 foreach ($group in $addOwnersToTeams) {
@@ -2042,7 +2042,7 @@ foreach ($group in $addOwnersToTeams) {
     Add-UnifiedGroupLinks -Identity $group.SourceEmailAddress -LinkType Member -Links "Migration_serviceaccount1@ehn.onmicrosoft.com"
     Add-UnifiedGroupLinks -Identity $group.SourceEmailAddress -LinkType Owner -Links "Migration_serviceaccount1@ehn.onmicrosoft.com" 
 }
-# Add Migration Account as Owner - Jefferson - From MigWiz Report
+# Add Migration Account as Owner - NewCompany - From MigWiz Report
 $progressref = ($addOwnersToTeams).count
 $progresscounter = 0
 foreach ($group in $addOwnersToTeams) {
@@ -2184,7 +2184,7 @@ $progresscounter = 0
 foreach ($group in $O365Groups) {
     #Set Variables
     $Addresssplit = $group.PrimarySMTPAddress_Source -split "@"
-    $DestinationPrimarySMTPAddress = $addressSplit[0] + "@jefferson.edu"
+    $DestinationPrimarySMTPAddress = $addressSplit[0] + "@example.org"
     $destinationDisplayName = $group.DisplayName_Source + " - EHN"
 
     #Progress Bar
@@ -2203,7 +2203,7 @@ foreach ($group in $O365Groups) {
         foreach ($member in $membersArray) {
             #Member Check
             $memberAddress = @()
-            if ($member -like "*@einstein.edu*") {
+            if ($member -like "*@og-example.org*") {
                 $memberCheck = $matchedMailboxes | ? {$_.PrimarySmtpAddress_Source -eq $member}
                 $memberAddress = $memberCheck.PrimarySmtpAddress_Destination
             }
@@ -2394,7 +2394,7 @@ foreach ($group in $allO365Groups) {
     Write-Host " done " -ForegroundColor Green
 }
 
-# Remove Migration Account as Owner DistributionGroups - Jefferson
+# Remove Migration Account as Owner DistributionGroups - NewCompany
 $progressref = ($allO365Groups).count
 $progresscounter = 0
 foreach ($group in $allO365Groups) {
@@ -2430,9 +2430,9 @@ foreach ($user in $newSharedMailboxes) {
     $progressStatus = "["+$progresscounter+" / "+$progressref+"]"
     Write-progress -PercentComplete $progresspercentcomplete -Status $progressStatus -Activity "Creating New Shared Mailbox $($user.DisplayName)"
     $addressSplit = $user.PrimarySmtpAddress -split "@"
-    $newPrimarySMTPAddress = $addressSplit[0] + "-ehn@jefferson.edu"
+    $newPrimarySMTPAddress = $addressSplit[0] + "-old@example.org"
     $newDisplayName = $user.DisplayName + " - EHN"
-    $newAlias = $user.alias +"-ehn"
+    $newAlias = $user.alias +"-old"
     Write-Host "Creating Shared Mailbox $($newPrimarySMTPAddress) " -ForegroundColor Cyan -NoNewline
     try {
         $newMailbox = New-Mailbox -Shared -name $newDisplayName -DisplayName $newDisplayName -alias $newAlias -PrimarySmtpAddress $newPrimarySMTPAddress -ea Stop
@@ -2496,7 +2496,7 @@ foreach ($object in $WaveGroup) {
 
     if ($msolUserCheck = Get-MsolUser -userprincipalname $object.UserPrincipalName -ea silentlycontinue){
         $mailboxCheck = Get-Mailbox $msolUserCheck.userPrincipalName -EA SilentlyContinue
-        $object | add-member -type noteproperty -name "FoundInEinstein" -Value $true -force
+        $object | add-member -type noteproperty -name "FoundInOldCompany" -Value $true -force
         $object | add-member -type noteproperty -name "FoundDisplayName" -Value $msolUserCheck.DisplayName -force
         $object | add-member -type noteproperty -name "FoundUserPrincipalName" -Value $msolUserCheck.UserPrincipalName -force
         $object | add-member -type noteproperty -name "IsLicensed" -Value $msolUserCheck.IsLicensed -force
@@ -2507,7 +2507,7 @@ foreach ($object in $WaveGroup) {
     }   
     elseif ($mailboxCheck = Get-Mailbox $object.PrimarySMTPAddress -ea silentlycontinue) {
         $msolUserCheck   = Get-MsolUser -userprincipalname $mailboxCheck.UserPrincipalName -EA SilentlyContinue
-        $object | add-member -type noteproperty -name "FoundInEinstein" -Value $mailboxCheck.RecipientTypeDetails -force
+        $object | add-member -type noteproperty -name "FoundInOldCompany" -Value $mailboxCheck.RecipientTypeDetails -force
         $object | add-member -type noteproperty -name "FoundDisplayName" -Value $msolUserCheck.DisplayName -force
         $object | add-member -type noteproperty -name "FoundUserPrincipalName" -Value $msolUserCheck.UserPrincipalName -force
         $object | add-member -type noteproperty -name "IsLicensed" -Value $msolUserCheck.IsLicensed -force
@@ -2517,7 +2517,7 @@ foreach ($object in $WaveGroup) {
         $object | add-member -type noteproperty -name "CustomAttribute7" -Value $mailboxCheck.CustomAttribute7 -force   
     }
     elseif ($recipientCheck = Get-Recipient $object.PrimarySMTPAddress -ea silentlycontinue) {
-        $object | add-member -type noteproperty -name "FoundInEinstein" -Value $recipientCheck.RecipientTypeDetails -force
+        $object | add-member -type noteproperty -name "FoundInOldCompany" -Value $recipientCheck.RecipientTypeDetails -force
         $object | add-member -type noteproperty -name "FoundDisplayName" -Value $recipientCheck.DisplayName -force
         $object | add-member -type noteproperty -name "FoundUserPrincipalName" -Value $null -force
         $object | add-member -type noteproperty -name "IsLicensed" -Value $null -force
@@ -2528,7 +2528,7 @@ foreach ($object in $WaveGroup) {
         $foundRecipient += $object
     }
     else {
-        $object | add-member -type noteproperty -name "FoundInEinstein" -Value $false -force
+        $object | add-member -type noteproperty -name "FoundInOldCompany" -Value $false -force
         $object | add-member -type noteproperty -name "FoundDisplayName" -Value $null -force
         $object | add-member -type noteproperty -name "FoundUserPrincipalName" -Value $null -force
         $object | add-member -type noteproperty -name "IsLicensed" -Value $null -force
@@ -2551,9 +2551,9 @@ foreach ($user in $WaveGroup) {
     $progresspercentcomplete = [math]::Round((($progresscounter / $progressref)*100),2)
     $progressStatus = "["+$progresscounter+" / "+$progressref+"]"
     Write-progress -PercentComplete $progresspercentcomplete -Status $progressStatus -Activity "Gathering Mailbox Details for $($user.DisplayName)"
-    $NewUPN = $user.CustomAttribute7 + "@jefferson.edu"
+    $NewUPN = $user.CustomAttribute7 + "@example.org"
     $addressSplit = $user.PrimarySmtpAddress -split "@"
-    $ehnPrimarySMTPAddress = $addressSplit[0] + "-ehn@jefferson.edu"
+    $ehnPrimarySMTPAddress = $addressSplit[0] + "-old@example.org"
 
     #NEW UPN Check
     if ($msoluser = Get-Msoluser -UserPrincipalName $NewUPN -ErrorAction SilentlyContinue) {
@@ -2702,12 +2702,12 @@ foreach ($object in $cloudONlyObjects) {
     $progresscounter += 1
     $progresspercentcomplete = [math]::Round((($progresscounter / $progressref)*100),2)
     $progressStatus = "["+$progresscounter+" / "+$progressref+"]"
-    Write-progress -PercentComplete $progresspercentcomplete -Status $progressStatus -Activity "Updating Mail Contact for $($object.DisplayName_Destination) CustomAttribute2 with jefferson-edu.mail.protection.outlook.com"    
+    Write-progress -PercentComplete $progresspercentcomplete -Status $progressStatus -Activity "Updating Mail Contact for $($object.DisplayName_Destination) CustomAttribute2 with NewCompany-edu.mail.protection.outlook.com"    
     Write-Host "Updated Mail Contact $($object.DisplayName_Destination) .. " -foregroundcolor Cyan -nonewline
     $objectCheck = @()
     try {
         if ($objectCheck = Get-MailContact $object.PrimarySmtpAddress_Destination -ea stop) {
-            Set-MailContact -Identity $objectCheck.PrimarySmtpAddress.tostring() -CustomAttribute2 "jefferson-edu.mail.protection.outlook.com"
+            Set-MailContact -Identity $objectCheck.PrimarySmtpAddress.tostring() -CustomAttribute2 "NewCompany-edu.mail.protection.outlook.com"
         }
         else {
             Write-Error "Unable to find contact $($ $object.PrimarySmtpAddress_Destination)"
@@ -2728,7 +2728,7 @@ foreach ($object in $cloudONlyObjects) {
     $progressStatus = "["+$progresscounter+" / "+$progressref+"]"
     Write-progress -PercentComplete $progresspercentcomplete -Status $progressStatus -Activity "Updating Mail Contact for $($object.DisplayName_Destination)"    
 
-    Set-MailContact -Identity $object.PrimarySmtpAddress_Destination -CustomAttribute2 "jefferson-edu.mail.protection.outlook.com"
+    Set-MailContact -Identity $object.PrimarySmtpAddress_Destination -CustomAttribute2 "NewCompany-edu.mail.protection.outlook.com"
 
     $emailAddressArray = $object.EmailAddresses -split ","
     foreach ($address in $emailAddressArray) {
@@ -2777,10 +2777,10 @@ foreach ($object in $1kMembersGroups) {
 
 #new Shared Mailbox Perm stamp
 # Grant SendAs Perms to Mailboxes
-$einsteinNonUserMailboxes = import-csv
+$OldCompanyNonUserMailboxes = import-csv
 $matchedMailboxes = Import-Csv
-$fullAccessPermUsers = $einsteinNonUserMailboxes | ? {$_.FullAccessPerms -and $_.ExistsInDestination -ne $false}
-$sendAsPermUsers =  $einsteinNonUserMailboxes | ? {$_.SendAsPerms -and $_.ExistsInDestination -ne $false}
+$fullAccessPermUsers = $OldCompanyNonUserMailboxes | ? {$_.FullAccessPerms -and $_.ExistsInDestination -ne $false}
+$sendAsPermUsers =  $OldCompanyNonUserMailboxes | ? {$_.SendAsPerms -and $_.ExistsInDestination -ne $false}
 $AllErrors = @()
 
 $progressref = ($fullAccessPermUsers).count
@@ -2836,12 +2836,12 @@ foreach ($user in $fullAccessPermUsers) {
 $matchedMailboxes = Import-Csv
 $1kGroups = Import-Csv
 $AllGroupErrors = @()
-$groupCheck = "UrbanCoreEEMI@jefferson.edu"
-$progressref = ($1kGroups | ?{$_.PrimarySMTPAddress_Destination -eq $groupCheck -and $_.Member -like "*einstein.edu"}).count
+$groupCheck = "UrbanCoreEEMI@example.org"
+$progressref = ($1kGroups | ?{$_.PrimarySMTPAddress_Destination -eq $groupCheck -and $_.Member -like "*og-example.org"}).count
 $progresscounter = 0
 
 Write-Host "Updating Group Members for $($groupCheck).. " -ForegroundColor Cyan -NoNewline
-foreach ($object in ($1kGroups | ?{$_.PrimarySMTPAddress_Destination -eq $groupCheck -and $_.Member -like "*einstein.edu"})) {
+foreach ($object in ($1kGroups | ?{$_.PrimarySMTPAddress_Destination -eq $groupCheck -and $_.Member -like "*og-example.org"})) {
     #Member Check
     $memberCheck = @()
     $memberCheck = $matchedMailboxes | ? {$_.PrimarySmtpAddress -eq $object.member}
@@ -2878,7 +2878,7 @@ foreach ($object in ($1kGroups | ?{$_.PrimarySMTPAddress_Destination -eq $groupC
 $WaveGroup = Import-Csv
 $progressref = ($WaveGroup).count
 $progresscounter = 0
-$waveDLGroup = "Wave5migration@einstein.edu"
+$waveDLGroup = "Wave5migration@og-example.org"
 foreach ($user in $WaveGroup) {
     $PrimarySMTPAddress =  $user.PrimarySmtpAddress_Source 
     $progresscounter += 1
@@ -2900,7 +2900,7 @@ foreach ($group in $groupmembers2) {
     Write-progress -id 1 -PercentComplete $progresspercentcomplete -Status $progressStatus -Activity "Removing Member  $($group.PrimarySMTPAddress)"
 
     #Add Member to Distribution Groups
-    Remove-DistributionGroupMember -Identity "Wave1migration@einstein.edu" -Member $group.PrimarySMTPAddress -confirm:$false
+    Remove-DistributionGroupMember -Identity "Wave1migration@og-example.org" -Member $group.PrimarySMTPAddress -confirm:$false
 }
 
 
@@ -3023,7 +3023,7 @@ function Start-BatchCutoverUpdates {
         [Parameter(Mandatory=$false,HelpMessage="Block Access to OneDrive?")] [switch] $BlockOneDriveAccess,
         [Parameter(Mandatory=$false,HelpMessage="Disable Teams?")] [switch] $DisableTeams,
         [Parameter(Mandatory=$false,HelpMessage="Do you want to Test?")] [switch] $Test,
-        [Parameter(Mandatory=$false,HelpMessage="Hide Einstein Contacts in Jefferson?")] [switch] $HideEinsteinContact,
+        [Parameter(Mandatory=$false,HelpMessage="Hide OldCompany Contacts in NewCompany?")] [switch] $HideOldCompanyContact,
         [Parameter(Mandatory=$false,HelpMessage="Force Log Out User?")] [switch] $ForceLogOut
     )
     #Create User Array
@@ -3045,10 +3045,10 @@ function Start-BatchCutoverUpdates {
 
         if ($test) {
             if ($Tenant -eq "Destination") {
-                # Jefferson
+                # NewCompany
                 Write-Host "Cutting Over User $($SourcePrimarySMTPAddress) .. " -foregroundcolor Cyan -nonewline
-                ## Hide Einstein Contact In Jefferson
-                if ($HideEinsteinContact) {
+                ## Hide OldCompany Contact In NewCompany
+                if ($HideOldCompanyContact) {
                     try {
                         Set-MailContact $SourcePrimarySMTPAddress -HiddenFromAddressListsEnabled $true
                         Write-Host ". " -ForegroundColor Green -NoNewline
@@ -3069,7 +3069,7 @@ function Start-BatchCutoverUpdates {
                 }
             }
             if ($Tenant -eq "Source") {
-                # Einstein
+                # OldCompany
                 Write-Host "Cutting Over User $($SourceUPN) .. " -foregroundcolor Cyan -nonewline
                 ## Set Mailbox to Forward from Source to Destination Mailbox and Leave a Copy
                 if ($SetForward) {
@@ -3121,7 +3121,7 @@ function Start-BatchCutoverUpdates {
                 # Block OneDrive Access
                 if ($BlockOneDriveAccess) {
                     $UPN = $SourceUPN
-                    $SPOUPN = $UPN.replace("@einstein.edu","_einstein_edu")
+                    $SPOUPN = $UPN.replace("@og-example.org","_OldCompany_edu")
                     $SPOSITE = Get-SPOSITE -IncludePersonalSite $true -filter "Url -like '-my.sharepoint.com/personal/$SPOUPN'" -ErrorAction SilentlyContinue
     
                     Write-Host "Blocking OneDrive Access .. " -foregroundcolor DarkCyan -nonewline
@@ -3218,10 +3218,10 @@ function Start-BatchCutoverUpdates {
         }
         else {
             if ($Tenant -eq "Destination") {
-                # Jefferson
+                # NewCompany
                 Write-Host "Cutting Over User $($SourcePrimarySMTPAddress) .. " -foregroundcolor Cyan -nonewline
-                ## Hide Einstein Contact In Jefferson
-                if ($HideEinsteinContact) {
+                ## Hide OldCompany Contact In NewCompany
+                if ($HideOldCompanyContact) {
                     try {
                         Set-MailContact $SourcePrimarySMTPAddress -HiddenFromAddressListsEnabled $true
                         Write-Host ". " -ForegroundColor Green -NoNewline
@@ -3242,7 +3242,7 @@ function Start-BatchCutoverUpdates {
                 }
             }
             if ($Tenant -eq "Source") {
-                # Einstein
+                # OldCompany
                 Write-Host "Cutting Over User $($SourceUPN) .. " -foregroundcolor Cyan -nonewline
                 ## Set Mailbox to Forward from Source to Destination Mailbox and Leave a Copy
                 if ($SetForward) {
@@ -3290,7 +3290,7 @@ function Start-BatchCutoverUpdates {
                 # Block OneDrive Access
                 if ($BlockOneDriveAccess) {
                     $UPN = $SourceUPN
-                    $SPOUPN = $UPN.replace("@einstein.edu","_einstein_edu")
+                    $SPOUPN = $UPN.replace("@og-example.org","_OldCompany_edu")
                     $SPOSITE = Get-SPOSITE -IncludePersonalSite $true -filter "Url -like '-my.sharepoint.com/personal/$SPOUPN'" -ErrorAction SilentlyContinue
     
                     Write-Host "Blocking OneDrive Access .. " -foregroundcolor DarkCyan -nonewline
@@ -3387,7 +3387,7 @@ function Start-BatchCutoverUpdates {
     }
 }
 
-#Block Einstein Guest Users
+#Block OldCompany Guest Users
 AzureADPreview\Connect-AzureAD
 $GuestUsers = Get-AzureADUser -All $true | Where-Object {$_.UserType -eq 'Guest'}
 $progressref = ($GuestUsers).count
@@ -3761,7 +3761,7 @@ function Start-RollbackBatchCutover {
         [Parameter(Mandatory=$false,HelpMessage="Block Access to OneDrive?")] [switch] $RestoreOneDriveAccess,
         [Parameter(Mandatory=$false,HelpMessage="Disable Teams?")] [switch] $EnableTeams,
         [Parameter(Mandatory=$false,HelpMessage="Do you want to Test?")] [switch] $Test,
-        [Parameter(Mandatory=$false,HelpMessage="Hide Einstein Contacts in Jefferson?")] [switch] $unhideEinsteinContact,
+        [Parameter(Mandatory=$false,HelpMessage="Hide OldCompany Contacts in NewCompany?")] [switch] $unhideOldCompanyContact,
         [Parameter(Mandatory=$false,HelpMessage="Force Log Out User?")] [switch] $ForceLogOut
     )
     #Create User Array
@@ -3783,10 +3783,10 @@ function Start-RollbackBatchCutover {
 
         if ($test) {
             if ($Tenant -eq "Destination") {
-                # Jefferson
+                # NewCompany
                 Write-Host "Cutting Over User $($SourcePrimarySMTPAddress) .. " -foregroundcolor Cyan -nonewline
-                ## Hide Einstein Contact In Jefferson
-                if ($HideEinsteinContact) {
+                ## Hide OldCompany Contact In NewCompany
+                if ($HideOldCompanyContact) {
                     try {
                         Set-MailContact $SourcePrimarySMTPAddress -HiddenFromAddressListsEnabled $true
                         Write-Host ". " -ForegroundColor Green -NoNewline
@@ -3807,7 +3807,7 @@ function Start-RollbackBatchCutover {
                 }
             }
             if ($Tenant -eq "Source") {
-                # Einstein
+                # OldCompany
                 Write-Host "Cutting Over User $($SourceUPN) .. " -foregroundcolor Cyan -nonewline
                 ## Set Mailbox to Forward from Source to Destination Mailbox and Leave a Copy
                 if ($SetForward) {
@@ -3857,7 +3857,7 @@ function Start-RollbackBatchCutover {
                 # Block OneDrive Access
                 if ($BlockOneDriveAccess) {
                     $UPN = $SourceUPN
-                    $SPOUPN = $UPN.replace("@einstein.edu","_einstein_edu")
+                    $SPOUPN = $UPN.replace("@og-example.org","_OldCompany_edu")
                     $SPOSITE = Get-SPOSITE -IncludePersonalSite $true -filter "Url -like '-my.sharepoint.com/personal/$SPOUPN'" -ErrorAction SilentlyContinue
     
                     Write-Host "Blocking OneDrive Access .. " -foregroundcolor DarkCyan -nonewline
@@ -3954,10 +3954,10 @@ function Start-RollbackBatchCutover {
         }
         else {
             if ($Tenant -eq "Destination") {
-                # Jefferson
+                # NewCompany
                 Write-Host "Cutting Over User $($SourcePrimarySMTPAddress) .. " -foregroundcolor Cyan -nonewline
-                ## Hide Einstein Contact In Jefferson
-                if ($HideEinsteinContact) {
+                ## Hide OldCompany Contact In NewCompany
+                if ($HideOldCompanyContact) {
                     try {
                         Set-MailContact $SourcePrimarySMTPAddress -HiddenFromAddressListsEnabled $true
                         Write-Host ". " -ForegroundColor Green -NoNewline
@@ -3978,7 +3978,7 @@ function Start-RollbackBatchCutover {
                 }
             }
             if ($Tenant -eq "Source") {
-                # Einstein
+                # OldCompany
                 Write-Host "Cutting Over User $($SourceUPN) .. " -foregroundcolor Cyan -nonewline
                 ## Set Mailbox to Forward from Source to Destination Mailbox and Leave a Copy
                 if ($SetForward) {
@@ -4026,7 +4026,7 @@ function Start-RollbackBatchCutover {
                 # Block OneDrive Access
                 if ($BlockOneDriveAccess) {
                     $UPN = $SourceUPN
-                    $SPOUPN = $UPN.replace("@einstein.edu","_einstein_edu")
+                    $SPOUPN = $UPN.replace("@og-example.org","_OldCompany_edu")
                     $SPOSITE = Get-SPOSITE -IncludePersonalSite $true -filter "Url -like '-my.sharepoint.com/personal/$SPOUPN'" -ErrorAction SilentlyContinue
     
                     Write-Host "Blocking OneDrive Access .. " -foregroundcolor DarkCyan -nonewline
@@ -4123,11 +4123,11 @@ function Start-RollbackBatchCutover {
     }
 }
 
-$einsteinAddress = "RansomSa@einstein.edu"
-Set-CASMailbox $einsteinAddress -MacOutlookEnabled $True -MAPIEnabled $True -OutlookMobileEnabled $True -OWAEnabled $True -ActiveSyncEnabled $True
-Set-Mailbox $einsteinAddress -DeliverToMailboxAndForward $false -ForwardingSmtpAddress $null
+$OldCompanyAddress = "RansomSa@og-example.org"
+Set-CASMailbox $OldCompanyAddress -MacOutlookEnabled $True -MAPIEnabled $True -OutlookMobileEnabled $True -OWAEnabled $True -ActiveSyncEnabled $True
+Set-Mailbox $OldCompanyAddress -DeliverToMailboxAndForward $false -ForwardingSmtpAddress $null
 #enable Teams
-$msoluser = Get-MsolUser -UserPrincipalName $einsteinAddress
+$msoluser = Get-MsolUser -UserPrincipalName $OldCompanyAddress
 $DisabledArray = @()
 $allLicenses = ($msoluser).Licenses
 #$SKUID = ($msoluser).licenses.AccountSkuId
@@ -4149,7 +4149,7 @@ $disabledArray2 = $disabledArray | ?{$_ -ne "Teams1"}
 $LicenseOptions = New-MsolLicenseOptions -AccountSkuId $SKUID -DisabledPlans $disabledArray
 Set-MsolUserLicense -UserPrincipalName $msoluser.UserPrincipalName -LicenseOptions $LicenseOptions
 
-Set-MailContact $einsteinAddress -HiddenFromAddressListsEnabled $false
+Set-MailContact $OldCompanyAddress -HiddenFromAddressListsEnabled $false
 
 
 
@@ -4217,10 +4217,10 @@ foreach ($user in $WaveGroup) {
     $progresspercentcomplete = [math]::Round((($progresscounter / $progressref)*100),2)
     $progressStatus = "["+$progresscounter+" / "+$progressref+"]"
     Write-progress -PercentComplete $progresspercentcomplete -Status $progressStatus -Activity "Gathering Mailbox Details for $($user.FoundDisplayName)"
-    $NewUPN = $user.CampusKey + "@jefferson.edu"
+    $NewUPN = $user.CampusKey + "@example.org"
     $addressSplit = $user.PrimarySmtpAddress -split "@"
-    $ehnPrimarySMTPAddress = $addressSplit[0] + "-ehn@jefferson.edu"
-    $newPrimarySMTPAddress = $user.PrimarySmtpAddress + "@jefferson.edu"
+    $ehnPrimarySMTPAddress = $addressSplit[0] + "-old@example.org"
+    $newPrimarySMTPAddress = $user.PrimarySmtpAddress + "@example.org"
 
     #NEW UPN Check
     if ($msoluser = Get-Msoluser -UserPrincipalName $NewUPN -ErrorAction SilentlyContinue) {
@@ -4368,7 +4368,7 @@ foreach ($object in $WaveGroup) {
 
     if ($msolUserCheck = Get-MsolUser -userprincipalname $object.UPN -ea silentlycontinue){
         $mailboxCheck = Get-Mailbox $msolUserCheck.userPrincipalName -EA SilentlyContinue
-        $object | add-member -type noteproperty -name "FoundInEinstein" -Value $true -force
+        $object | add-member -type noteproperty -name "FoundInOldCompany" -Value $true -force
         $object | add-member -type noteproperty -name "FoundDisplayName" -Value $msolUserCheck.DisplayName -force
         $object | add-member -type noteproperty -name "FoundUserPrincipalName" -Value $msolUserCheck.UserPrincipalName -force
         $object | add-member -type noteproperty -name "IsLicensed" -Value $msolUserCheck.IsLicensed -force
@@ -4378,7 +4378,7 @@ foreach ($object in $WaveGroup) {
         $object | add-member -type noteproperty -name "CustomAttribute7" -Value $mailboxCheck.CustomAttribute7 -force       
     } 
     else {
-        $object | add-member -type noteproperty -name "FoundInEinstein" -Value $false -force
+        $object | add-member -type noteproperty -name "FoundInOldCompany" -Value $false -force
         $object | add-member -type noteproperty -name "FoundDisplayName" -Value $null -force
         $object | add-member -type noteproperty -name "FoundUserPrincipalName" -Value $null -force
         $object | add-member -type noteproperty -name "IsLicensed" -Value $null -force
@@ -4448,9 +4448,9 @@ foreach ($user in $matchedMailboxes){
 }
 
 #Check for Mailboxes in Migration Job Wave
-$Wave5UserMailboxes = Import-Excel -WorksheetName "Wave 5 Users - 4368" -path "C:\Users\amedrano\Arraya Solutions\Thomas Jefferson - Einstein to Jefferson Migration\Exchange Online\All-MatchedMailboxes_3-25_2022.xlsx"
-$NonUserMailboxes = Import-Excel -WorksheetName "Wave 5 Non Users - 658" -path "C:\Users\amedrano\Arraya Solutions\Thomas Jefferson - Einstein to Jefferson Migration\Exchange Online\All-MatchedMailboxes_3-25_2022.xlsx"
-$GroupMailboxes = Import-CSV "C:\Users\amedrano\Arraya Solutions\Thomas Jefferson - Einstein to Jefferson Migration\Exchange Online\MatchedGroups_EHN-TJU.csv"
+$Wave5UserMailboxes = Import-Excel -WorksheetName "Wave 5 Users - 4368" -path "C:\Users\amedrano\Arraya Solutions\Thomas NewCompany - OldCompany to NewCompany Migration\Exchange Online\All-MatchedMailboxes_3-25_2022.xlsx"
+$NonUserMailboxes = Import-Excel -WorksheetName "Wave 5 Non Users - 658" -path "C:\Users\amedrano\Arraya Solutions\Thomas NewCompany - OldCompany to NewCompany Migration\Exchange Online\All-MatchedMailboxes_3-25_2022.xlsx"
+$GroupMailboxes = Import-CSV "C:\Users\amedrano\Arraya Solutions\Thomas NewCompany - OldCompany to NewCompany Migration\Exchange Online\MatchedGroups_EHN-TJU.csv"
 $GroupMailboxes = $GroupMailboxes | ?{$_.IsMailboxConfigured_Source -eq $true}
 
 $MigrationJobDetails  = Import-CSV "C:\Users\amedrano\Desktop\MatchedItems\All-MatchedMailboxes_TMP 3-25.csv"
@@ -4474,9 +4474,9 @@ foreach ($user in $NonUserMailboxes) {
 }
 
 #Update Wave User's Details
-$updatedMatchedMailboxDetails = Import-Excel -WorksheetName "Master List2" -path 'c:\Users\amedrano\Arraya Solutions\Thomas Jefferson - Einstein to Jefferson Migration\Exchange Online\AllMatched_Mailboxes-3-21-2022.xlsx'
+$updatedMatchedMailboxDetails = Import-Excel -WorksheetName "Master List2" -path 'c:\Users\amedrano\Arraya Solutions\Thomas NewCompany - OldCompany to NewCompany Migration\Exchange Online\AllMatched_Mailboxes-3-21-2022.xlsx'
 $updatedMatchedMailboxDetails = import-csv
-$oldMatchedMailboxDetails  = Import-Excel -path 'c:\Users\amedrano\Arraya Solutions\Thomas Jefferson - Einstein to Jefferson Migration\Exchange Online\AllMatched_Mailboxes-3-21-2022.xlsx'
+$oldMatchedMailboxDetails  = Import-Excel -path 'c:\Users\amedrano\Arraya Solutions\Thomas NewCompany - OldCompany to NewCompany Migration\Exchange Online\AllMatched_Mailboxes-3-21-2022.xlsx'
 $progressref = $updatedMatchedMailboxDetails.count
 $progresscounter = 0
 foreach ($user in $updatedMatchedMailboxDetails) {
@@ -4514,9 +4514,9 @@ foreach ($user in $updatedMatchedMailboxDetails) {
 }
 
 #Update Wave User's Details
-$updatedMatchedMailboxDetails = Import-Excel -WorksheetName "Master List2" -path 'c:\Users\amedrano\Arraya Solutions\Thomas Jefferson - Einstein to Jefferson Migration\Exchange Online\AllMatched_Mailboxes-3-21-2022.xlsx'
+$updatedMatchedMailboxDetails = Import-Excel -WorksheetName "Master List2" -path 'c:\Users\amedrano\Arraya Solutions\Thomas NewCompany - OldCompany to NewCompany Migration\Exchange Online\AllMatched_Mailboxes-3-21-2022.xlsx'
 $updatedMatchedMailboxDetails = import-csv
-$oldMatchedMailboxDetails  = Import-Excel -path 'c:\Users\amedrano\Arraya Solutions\Thomas Jefferson - Einstein to Jefferson Migration\Exchange Online\AllMatched_Mailboxes-3-21-2022.xlsx'
+$oldMatchedMailboxDetails  = Import-Excel -path 'c:\Users\amedrano\Arraya Solutions\Thomas NewCompany - OldCompany to NewCompany Migration\Exchange Online\AllMatched_Mailboxes-3-21-2022.xlsx'
 $progressref = $updatedMatchedMailboxDetails.count
 $progresscounter = 0
 foreach ($user in $updatedMatchedMailboxDetails) {
@@ -4534,9 +4534,9 @@ foreach ($user in $updatedMatchedMailboxDetails) {
 }
 
 #Update Post Migration Details - Include Wave Details
-$postmigrationdetails = Import-Excel -WorksheetName "Master List2" -path 'c:\Users\amedrano\Arraya Solutions\Thomas Jefferson - Einstein to Jefferson Migration\Exchange Online\AllMatched_Mailboxes-3-21-2022.xlsx'
+$postmigrationdetails = Import-Excel -WorksheetName "Master List2" -path 'c:\Users\amedrano\Arraya Solutions\Thomas NewCompany - OldCompany to NewCompany Migration\Exchange Online\AllMatched_Mailboxes-3-21-2022.xlsx'
 $updatedMatchedMailboxDetails = import-csv
-$allmailboxdetails  = Import-Excel -path 'c:\Users\amedrano\Arraya Solutions\Thomas Jefferson - Einstein to Jefferson Migration\Exchange Online\AllMatched_Mailboxes-3-21-2022.xlsx'
+$allmailboxdetails  = Import-Excel -path 'c:\Users\amedrano\Arraya Solutions\Thomas NewCompany - OldCompany to NewCompany Migration\Exchange Online\AllMatched_Mailboxes-3-21-2022.xlsx'
 $progressref = $postmigrationdetails.count
 $progresscounter = 0
 foreach ($user in $postmigrationdetails) {
@@ -4574,7 +4574,7 @@ foreach ($user in $postmigrationdetails) {
 }
 
 #Update SharePoint Site Details
-$EinsteinSPOSites = Import-Excel -WorksheetName "EHN - SPO Sites" -path "C:\Users\amedrano\Desktop\SharePoint\EHN-TJU SharePoint Summary.xlsx"
+$OldCompanySPOSites = Import-Excel -WorksheetName "EHN - SPO Sites" -path "C:\Users\amedrano\Desktop\SharePoint\EHN-TJU SharePoint Summary.xlsx"
 $TJUSPOSites  = Import-Excel -WorksheetName "TJU - SPO Sites" -path "C:\Users\amedrano\Desktop\SharePoint\EHN-TJU SharePoint Summary.xlsx"
 $progressref = $TJUSPOSites.count
 $progresscounter = 0
@@ -4595,7 +4595,7 @@ foreach ($object in $TJUSPOSites) {
 $TJUSPOSites | Export-Excel -WorksheetName "TJU - SPO Sites" -path "C:\Users\amedrano\Desktop\SharePoint\EHN-TJU SharePoint Summary.xlsx"
 
 ## 
-function New-JeffersonResourceMailboxes {
+function New-NewCompanyResourceMailboxes {
     param (
         [Parameter(Mandatory=$True,HelpMessage="Which Type to Create?")] [string] $MailboxType,
         [Parameter(Mandatory=$True,HelpMessage="What is the CSV File Path")] [string] $ImportExcel,
@@ -4616,10 +4616,10 @@ function New-JeffersonResourceMailboxes {
         foreach ($mailbox in $resources) {
             #Set Variables
             $addressSplit = $mailbox.PrimarySmtpAddress_Source -split "@"
-            $destinationEmail = $addressSplit[0] + "@jefferson.edu"
+            $destinationEmail = $addressSplit[0] + "@example.org"
             $destinationDisplayName = $mailbox.DisplayName_Source
             $EHNDisplayName = $mailbox.DisplayName_Source + " - EHN"
-            $EHNAddress = $addressSplit[0] + "-ehn@jefferson.edu"
+            $EHNAddress = $addressSplit[0] + "-old@example.org"
             
             #Progress Bar - Resources
             $progresscounter += 1
@@ -4669,10 +4669,10 @@ function New-JeffersonResourceMailboxes {
         foreach ($mailbox in $sharedMailboxes) {
             #Set Variables
             $addressSplit = $mailbox.PrimarySmtpAddress_Source -split "@"
-            $destinationEmail = $addressSplit[0] + "@jefferson.edu"
+            $destinationEmail = $addressSplit[0] + "@example.org"
             $destinationDisplayName = $mailbox.DisplayName_Source
             $EHNDisplayName = $mailbox.DisplayName_Source + " - EHN"
-            $EHNAddress = $addressSplit[0] + "-ehn@jefferson.edu"
+            $EHNAddress = $addressSplit[0] + "-old@example.org"
             
             #Progress Bar - Resources
             $progresscounter += 1
@@ -4722,10 +4722,10 @@ function New-JeffersonResourceMailboxes {
         foreach ($mailbox in $EquipmentMailboxes) {
             #Set Variables
             $addressSplit = $mailbox.PrimarySmtpAddress_Source -split "@"
-            $destinationEmail = $addressSplit[0] + "@jefferson.edu"
+            $destinationEmail = $addressSplit[0] + "@example.org"
             $destinationDisplayName = $mailbox.DisplayName_Source
             $EHNDisplayName = $mailbox.DisplayName_Source + " - EHN"
-            $EHNAddress = $addressSplit[0] + "-ehn@jefferson.edu"
+            $EHNAddress = $addressSplit[0] + "-old@example.org"
             
             #Progress Bar - Resources
             $progresscounter += 1
@@ -4797,7 +4797,7 @@ function New-JeffersonResourceMailboxes {
     }
 }
 
-function Remove-JeffersonResourceMailboxes {
+function Remove-NewCompanyResourceMailboxes {
     param (
         [Parameter(Mandatory=$True,HelpMessage="Which Type to Create?")] [string] $MailboxType,
         [Parameter(Mandatory=$True,HelpMessage="What is the CSV File Path")] [string] $ImportExcel,
@@ -4818,7 +4818,7 @@ function Remove-JeffersonResourceMailboxes {
         foreach ($mailbox in $sharedMailboxes) {
             #Set Variables
             $addressSplit = $mailbox.PrimarySmtpAddress_Source -split "@"
-            $destinationEmail = $addressSplit[0] + "-ehn@jefferson.edu"
+            $destinationEmail = $addressSplit[0] + "-old@example.org"
                         
             #Progress Bar - Resources
             $progresscounter += 1
@@ -4860,10 +4860,10 @@ $progresscounter = 0
 foreach ($mailbox in $newSharedMailboxes) {
     #Set Variables
     $addressSplit = $mailbox.PrimarySmtpAddress -split "@"
-    $destinationEmail = $addressSplit[0] + "@jefferson.edu"
+    $destinationEmail = $addressSplit[0] + "@example.org"
     $destinationDisplayName = $mailbox.DisplayName
     $EHNDisplayName = $mailbox.DisplayName + " - EHN"
-    $EHNAddress = $addressSplit[0] + "-ehn@jefferson.edu"
+    $EHNAddress = $addressSplit[0] + "-old@example.org"
     
     #Progress Bar - Resources
     $progresscounter += 1
@@ -4923,10 +4923,10 @@ foreach ($user in $remainingMailboxes) {
 
     #Set Variables
     $addressSplit = $user.PrimarySmtpAddress_Source -split "@"
-    $destinationEmail = $addressSplit[0] + "@jefferson.edu"
+    $destinationEmail = $addressSplit[0] + "@example.org"
     $destinationDisplayName = $user.DisplayName_Source
     $EHNDisplayName = $user.DisplayName_Source + " - EHN"
-    $EHNAddress = $addressSplit[0] + "-ehn@jefferson.edu"
+    $EHNAddress = $addressSplit[0] + "-old@example.org"
 
     #NEW PrimarySMTPAddress Check (EHN added)
     if ($msoluser = Get-Msoluser -searchstring $EHNDisplayName -ErrorAction SilentlyContinue) {
@@ -5028,10 +5028,10 @@ foreach ($user in $newSharedMailboxes) {
 
     #Set Variables
     $addressSplit = $user.PrimarySmtpAddress-split "@"
-    $destinationEmail = $addressSplit[0] + "@jefferson.edu"
+    $destinationEmail = $addressSplit[0] + "@example.org"
     $destinationDisplayName = $user.DisplayName
     $EHNDisplayName = $user.DisplayName + " - EHN"
-    $EHNAddress = $addressSplit[0] + "-ehn@jefferson.edu"
+    $EHNAddress = $addressSplit[0] + "-old@example.org"
 
     #NEW PrimarySMTPAddress Check (EHN added)
     if ($recipientCheck = Get-Recipient $EHNDisplayName -ErrorAction SilentlyContinue) {
@@ -5082,8 +5082,8 @@ $progressref = ($O365Groups).count
 $progresscounter = 0
 foreach ($group in $O365Groups) {
     #Set Variables
-    $DestinationPrimarySMTPAddress = $group.PrimarySmtpAddress_Jefferson
-    $destinationDisplayName = $group.DisplayName_Jefferson
+    $DestinationPrimarySMTPAddress = $group.PrimarySmtpAddress_NewCompany
+    $destinationDisplayName = $group.DisplayName_NewCompany
 
     #Progress Bar
     $progresscounter += 1
@@ -5105,7 +5105,7 @@ foreach ($group in $O365Groups) {
             foreach ($member in $membersArray) {
                 #Member Check
                 $memberAddress = @()
-                if ($member -like "*@einstein.edu*") {
+                if ($member -like "*@og-example.org*") {
                     $memberCheck = $matchedMailboxes | ? {$_.PrimarySmtpAddress_Source -eq $member}
                     $memberAddress = $memberCheck.PrimarySmtpAddress_Destination
                 }
@@ -5196,7 +5196,7 @@ foreach ($group in $O365Groups) {
             foreach ($member in $membersArray) {
                 #Member Check
                 $memberAddress = @()
-                if ($member -like "*@einstein.edu*") {
+                if ($member -like "*@og-example.org*") {
                     $memberCheck = $matchedMailboxes | ? {$_.PrimarySmtpAddress_Source -eq $member}
                     $memberAddress = $memberCheck.PrimarySmtpAddress_Destination
                 }
@@ -5326,7 +5326,7 @@ ForEach ($group in $groups){
     $progressStatus = "["+$progresscounter+" / "+$progressref+"]"
     Write-progress -id 1 -PercentComplete $progresspercentcomplete -Status $progressStatus -Activity "Updating Members and Owners to $($group.DisplayName)"
     
-    $members = Get-AzureADGroupMember -ObjectId $group.ObjectId -All $true | ?{$_.Mail -like "*@einstein.edu"}
+    $members = Get-AzureADGroupMember -ObjectId $group.ObjectId -All $true | ?{$_.Mail -like "*@og-example.org"}
     $progressref2 = ($members).count
     $progresscounter2 = 0
     ForEach ($member in $members){
@@ -5342,7 +5342,7 @@ ForEach ($group in $groups){
         $UserObject | add-member  -membertype NoteProperty -name "UserType" -Value $member.UserType
         $UserObject | add-member  -membertype NoteProperty -name "UserPrinicpalName" -Value $member.UserPrincipalName
         $UserObject | add-member  -membertype NoteProperty -name "Mail" -Value $member.Mail
-        $UserObject | Export-Csv -NoTypeInformation -Encoding utf8 -Path C:\Users\AbacoMigration\Desktop\Jefferson\JeffersonGroupsAndMembers.csv -Append
+        $UserObject | Export-Csv -NoTypeInformation -Encoding utf8 -Path C:\Users\AbacoMigration\Desktop\NewCompany\NewCompanyGroupsAndMembers.csv -Append
     }
 }
 
@@ -5538,9 +5538,9 @@ foreach ($mailbox in $allMatchedSharedMailboxes) {
 }
 
 #Get Mailbox Match Details
-$Wave5UserMailboxes = Import-Excel -WorksheetName "Wave 5 Users - 4368" -path "C:\Users\amedrano\Arraya Solutions\Thomas Jefferson - Einstein to Jefferson Migration\Exchange Online\All-MatchedMailboxes_3-25_2022.xlsx"
-$NonUserMailboxes = Import-Excel -WorksheetName "Wave 5 Non Users - 658" -path "C:\Users\amedrano\Arraya Solutions\Thomas Jefferson - Einstein to Jefferson Migration\Exchange Online\All-MatchedMailboxes_3-25_2022.xlsx"
-$GroupMailboxes = Import-CSV "C:\Users\amedrano\Arraya Solutions\Thomas Jefferson - Einstein to Jefferson Migration\Exchange Online\MatchedGroups_EHN-TJU.csv"
+$Wave5UserMailboxes = Import-Excel -WorksheetName "Wave 5 Users - 4368" -path "C:\Users\amedrano\Arraya Solutions\Thomas NewCompany - OldCompany to NewCompany Migration\Exchange Online\All-MatchedMailboxes_3-25_2022.xlsx"
+$NonUserMailboxes = Import-Excel -WorksheetName "Wave 5 Non Users - 658" -path "C:\Users\amedrano\Arraya Solutions\Thomas NewCompany - OldCompany to NewCompany Migration\Exchange Online\All-MatchedMailboxes_3-25_2022.xlsx"
+$GroupMailboxes = Import-CSV "C:\Users\amedrano\Arraya Solutions\Thomas NewCompany - OldCompany to NewCompany Migration\Exchange Online\MatchedGroups_EHN-TJU.csv"
 
 $MigrationJobDetails  = Import-CSV "C:\Users\amedrano\Desktop\MatchedItems\All-MatchedMailboxes_TMP 3-25.csv"
 $sharedMailboxes = import-csv 
@@ -5566,7 +5566,7 @@ foreach ($user in $sharedRemainingMailboxes) {
 
 # Stamp Perms to Full Access and SendAs - Shared Mailboxes
 $allmatchedMailboxes = Import-Csv
-$sharedMailboxes = Import-Csv "C:\Users\amedrano\Arraya Solutions\Thomas Jefferson - Einstein to Jefferson Migration\Exchange Online\Batches\Wave5-NonUsers_Old.csv"
+$sharedMailboxes = Import-Csv "C:\Users\amedrano\Arraya Solutions\Thomas NewCompany - OldCompany to NewCompany Migration\Exchange Online\Batches\Wave5-NonUsers_Old.csv"
 
 $AllErrorsPerms = @()
 $progressref = $sharedMailboxes.count
@@ -5707,8 +5707,8 @@ foreach ($mailbox in $sharedMailboxes) {
 
 }
 
-#Pull Einstein VIP Delegate Perms
-$EinsteinVIPS = Import-Excel "C:\Users\amedrano\Arraya Solutions\Thomas Jefferson - Einstein to Jefferson Migration\VIP lists\Einstein Updated list of VIP 10 4 21.xlsx"
+#Pull OldCompany VIP Delegate Perms
+$OldCompanyVIPS = Import-Excel "C:\Users\amedrano\Arraya Solutions\Thomas NewCompany - OldCompany to NewCompany Migration\VIP lists\OldCompany Updated list of VIP 10 4 21.xlsx"
 
 
 #REGION Get list of calendar permissions
@@ -5719,9 +5719,9 @@ $calendarpermsList = @()
 $perms = @()
 
 #ProgressBar
-$progressref = ($EinsteinVIPS).count
+$progressref = ($OldCompanyVIPS).count
 $progresscounter = 0
-foreach ($mbx in $EinsteinVIPS) {
+foreach ($mbx in $OldCompanyVIPS) {
     #Progress Bar
     $progresscounter += 1
     $progresspercentcomplete = [math]::Round((($progresscounter / $progressref)*100),2)
@@ -5884,9 +5884,9 @@ $calendarpermsList = @()
 $perms = @()
 
 #ProgressBar
-$progressref = ($EinsteinVIPS).count
+$progressref = ($OldCompanyVIPS).count
 $progresscounter = 0
-foreach ($mbx in $EinsteinVIPS) {
+foreach ($mbx in $OldCompanyVIPS) {
     #Progress Bar
     $progresscounter += 1
     $progresspercentcomplete = [math]::Round((($progresscounter / $progressref)*100),2)
@@ -5967,19 +5967,19 @@ foreach ($mbx in $EinsteinVIPS) {
 
 #Gather All Teams URLs
 $msteams = Get-Team
-$EinsteinTeams = 
-$JeffersonTeams = 
+$OldCompanyTeams = 
+$NewCompanyTeams = 
 #ProgressBar
-$progressref = ($EinsteinTeams).count
+$progressref = ($OldCompanyTeams).count
 $progresscounter = 0
-foreach ($team in $EinsteinTeams) {
+foreach ($team in $OldCompanyTeams) {
     #Progress Bar
     $progresscounter += 1
     $progresspercentcomplete = [math]::Round((($progresscounter / $progressref)*100),2)
     $progressStatus = "["+$progresscounter+" / "+$progressref+"]"
     Write-progress -id 1 -PercentComplete $progresspercentcomplete -Status $progressStatus -Activity "Gathering Teams Details for $($team.TeamName_Source)"
 
-    if ($matchedTeam = $JeffersonTeams | ?{$_."Team Name" -eq $team.TeamName_Source}){
+    if ($matchedTeam = $NewCompanyTeams | ?{$_."Team Name" -eq $team.TeamName_Source}){
         $team | add-member -type noteproperty -name "TeamName_Destination" -Value $matchedTeam."Team Name" -force
         $team | add-member -type noteproperty -name "SharePointSiteURL_Destination" -Value $matchedTeam."SharePoint Site URL" -force
         $team | add-member -type noteproperty -name "PrimarySMTPAddress_Destination" -Value $matchedTeam."Primary SMTP Address" -force
@@ -6143,11 +6143,11 @@ foreach ($user in $sourceMailboxes) {
     $progresspercentcomplete = [math]::Round((($progresscounter / $progressref)*100),2)
     $progressStatus = "["+$progresscounter+" / "+$progressref+"]"
     Write-progress -PercentComplete $progresspercentcomplete -Status $progressStatus -Activity "Gathering Mailbox Details for $($user.DisplayName_Source)"
-    $NewUPN = $user.CustomAttribute7_Source + "@jefferson.edu"
-    $CampusKeyUPN = $user.CampusKey + "@jefferson.edu"
+    $NewUPN = $user.CustomAttribute7_Source + "@example.org"
+    $CampusKeyUPN = $user.CampusKey + "@example.org"
     $addressSplit = $user.PrimarySmtpAddress_Source -split "@"
-    $ehnPrimarySMTPAddress = $addressSplit[0] + "-ehn@jefferson.edu"
-    $newPrimarySMTPAddress = $addressSplit[0] + "@jefferson.edu"
+    $ehnPrimarySMTPAddress = $addressSplit[0] + "-old@example.org"
+    $newPrimarySMTPAddress = $addressSplit[0] + "@example.org"
 
     # Campus Key Match
     if ($msoluser = Get-Msoluser -UserPrincipalName $CampusKeyUPN -ErrorAction SilentlyContinue) {
@@ -6221,11 +6221,11 @@ foreach ($user in $sourceMailboxes) {
     $progresspercentcomplete = [math]::Round((($progresscounter / $progressref)*100),2)
     $progressStatus = "["+$progresscounter+" / "+$progressref+"]"
     Write-progress -PercentComplete $progresspercentcomplete -Status $progressStatus -Activity "Gathering Mailbox Details for $($user.DisplayName_Source)"
-    $NewUPN = $user.CustomAttribute7_Source + "@jefferson.edu"
-    #$CampusKeyUPN = $user.CampusKey + "@jefferson.edu"
+    $NewUPN = $user.CustomAttribute7_Source + "@example.org"
+    #$CampusKeyUPN = $user.CampusKey + "@example.org"
     $addressSplit = $user.PrimarySmtpAddress_Source -split "@"
-    $ehnPrimarySMTPAddress = $addressSplit[0] + "-ehn@jefferson.edu"
-    $newPrimarySMTPAddress = $addressSplit[0] + "@jefferson.edu"
+    $ehnPrimarySMTPAddress = $addressSplit[0] + "-old@example.org"
+    $newPrimarySMTPAddress = $addressSplit[0] + "@example.org"
     #New UPN Match - CustomAttribute7
     if ($mailbox = Get-Mailbox $NewUPN -ErrorAction SilentlyContinue) {
         Write-Host "$($mailbox.UserPrincipalName) User found with CampusKey" -ForegroundColor Green
@@ -6280,10 +6280,10 @@ foreach ($user in $sourceMailboxes) {
 }
 
 #Get SharePoint Group Perm Details
-$matchedTeams = Import-excel "C:\Users\amedrano\Arraya Solutions\Thomas Jefferson - Einstein to Jefferson Migration\ShareGate\Teams\MatchedTeams.xlsx"
+$matchedTeams = Import-excel "C:\Users\amedrano\Arraya Solutions\Thomas NewCompany - OldCompany to NewCompany Migration\ShareGate\Teams\MatchedTeams.xlsx"
 $progressref = $matchedTeams.count
 $progresscounter = 0
-$EinsteinTeamsPerms = @()
+$OldCompanyTeamsPerms = @()
 foreach ($object in $matchedTeams) {
     $progresscounter += 1
     $progresspercentcomplete = [math]::Round((($progresscounter / $progressref)*100),2)
@@ -6302,14 +6302,14 @@ foreach ($object in $matchedTeams) {
         $newObject | add-member -type noteproperty -name "CreationTime_Destination" -Value $object.CreationTime_Destination -force
         $newObject | add-member -type noteproperty -name "GroupTitle" -Value $siteGroup.Title -force
         $newObject | add-member -type noteproperty -name "GroupPerms" -Value $roles -force
-        $EinsteinTeamsPerms += $newObject
+        $OldCompanyTeamsPerms += $newObject
     }
 }
 
 #Gather One Drive Details for Matched Accounts
-$jeffersonOneDriveDetails = import-csv "C:\Users\amedrano\Downloads\JeffersonOneDriveUsageAccountDetail4_18_2022 1_43_02 PM.csv"
-$einsteinOneDriveDetails = import-csv "C:\Users\amedrano\Downloads\EinsteinOneDriveUsageAccountDetail4_18_2022 1_40_59 PM.csv"
-$allmatchedMailboxes = import-csv "C:\Users\amedrano\Arraya Solutions\Thomas Jefferson - Einstein to Jefferson Migration\Exchange Online\AllMatched_Mailboxes.csv"
+$NewCompanyOneDriveDetails = import-csv "C:\Users\amedrano\Downloads\NewCompanyOneDriveUsageAccountDetail4_18_2022 1_43_02 PM.csv"
+$OldCompanyOneDriveDetails = import-csv "C:\Users\amedrano\Downloads\OldCompanyOneDriveUsageAccountDetail4_18_2022 1_40_59 PM.csv"
+$allmatchedMailboxes = import-csv "C:\Users\amedrano\Arraya Solutions\Thomas NewCompany - OldCompany to NewCompany Migration\Exchange Online\AllMatched_Mailboxes.csv"
 $progressref = $allmatchedMailboxes.count
 $progresscounter = 0
 foreach ($mailbox in $allmatchedMailboxes) {
@@ -6317,12 +6317,12 @@ foreach ($mailbox in $allmatchedMailboxes) {
     $progresspercentcomplete = [math]::Round((($progresscounter / $progressref)*100),2)
     $progressStatus = "["+$progresscounter+" / "+$progressref+"]"
     Write-progress -id 1 -PercentComplete $progresspercentcomplete -Status $progressStatus -Activity "Gathering Details $($mailbox.UserPrincipalName_Source)"
-    #gatherOneDriveDetails - Einstein
-    if ($matchedEinstein = $einsteinOneDriveDetails | ?{$_."Owner Principal Name" -eq $mailbox.UserPrincipalName_Source}) {
-        $mailbox | add-member -type noteproperty -name "OneDriveURL_Source" -Value $matchedEinstein."Site URL" -force
-        $mailbox | add-member -type noteproperty -name "OneDriveLastActivityDate_Source" -Value $matchedEinstein."Last Activity Date" -force
-        $mailbox | add-member -type noteproperty -name "OneDriveFileCount_Source" -Value $matchedEinstein."File Count" -force
-        $mailbox | add-member -type noteproperty -name "OneDriveStorageUsage(Byte)_Source" -Value $matchedEinstein."Storage Used (Byte)" -force
+    #gatherOneDriveDetails - OldCompany
+    if ($matchedOldCompany = $OldCompanyOneDriveDetails | ?{$_."Owner Principal Name" -eq $mailbox.UserPrincipalName_Source}) {
+        $mailbox | add-member -type noteproperty -name "OneDriveURL_Source" -Value $matchedOldCompany."Site URL" -force
+        $mailbox | add-member -type noteproperty -name "OneDriveLastActivityDate_Source" -Value $matchedOldCompany."Last Activity Date" -force
+        $mailbox | add-member -type noteproperty -name "OneDriveFileCount_Source" -Value $matchedOldCompany."File Count" -force
+        $mailbox | add-member -type noteproperty -name "OneDriveStorageUsage(Byte)_Source" -Value $matchedOldCompany."Storage Used (Byte)" -force
     }
     else {
         $mailbox | add-member -type noteproperty -name "OneDriveURL_Source" -Value $null -force
@@ -6330,12 +6330,12 @@ foreach ($mailbox in $allmatchedMailboxes) {
         $mailbox | add-member -type noteproperty -name "OneDriveFileCount_Source" -Value $null -force
         $mailbox | add-member -type noteproperty -name "OneDriveStorageUsage(Byte)_Source" -Value $null -force
     }
-    #gatherOneDriveDetails - Jefferson
-    if ($matchedJefferson = $jeffersonOneDriveDetails | ?{$_."Owner Principal Name" -eq $mailbox.UserPrincipalName_Destination}) {
-        $mailbox | add-member -type noteproperty -name "OneDriveURL_Destination" -Value $matchedJefferson."Site URL" -force
-        $mailbox | add-member -type noteproperty -name "OneDriveLastActivityDate_Destination" -Value $matchedJefferson."Last Activity Date" -force
-        $mailbox | add-member -type noteproperty -name "OneDriveFileCount_Destination" -Value $matchedJefferson."File Count" -force
-        $mailbox | add-member -type noteproperty -name "OneDriveStorageUsage(Byte)_Destination" -Value $matchedJefferson."Storage Used (Byte)" -force
+    #gatherOneDriveDetails - NewCompany
+    if ($matchedNewCompany = $NewCompanyOneDriveDetails | ?{$_."Owner Principal Name" -eq $mailbox.UserPrincipalName_Destination}) {
+        $mailbox | add-member -type noteproperty -name "OneDriveURL_Destination" -Value $matchedNewCompany."Site URL" -force
+        $mailbox | add-member -type noteproperty -name "OneDriveLastActivityDate_Destination" -Value $matchedNewCompany."Last Activity Date" -force
+        $mailbox | add-member -type noteproperty -name "OneDriveFileCount_Destination" -Value $matchedNewCompany."File Count" -force
+        $mailbox | add-member -type noteproperty -name "OneDriveStorageUsage(Byte)_Destination" -Value $matchedNewCompany."Storage Used (Byte)" -force
     }
     else {
         $mailbox | add-member -type noteproperty -name "OneDriveURL_Destination" -Value $null -force
@@ -6345,11 +6345,11 @@ foreach ($mailbox in $allmatchedMailboxes) {
     } 
 }
 
-#Remove Einstein Mail Contacts in Jefferson
-$einsteinMailContacts = Get-MailContact -Filter "ExternalEmailAddress -like '*jefferson.edu'" -ResultSize unlimited
-$progressref = $einsteinMailContacts.count
+#Remove OldCompany Mail Contacts in NewCompany
+$OldCompanyMailContacts = Get-MailContact -Filter "ExternalEmailAddress -like '*example.org'" -ResultSize unlimited
+$progressref = $OldCompanyMailContacts.count
 $progresscounter = 0
-foreach ($object in $einsteinMailContacts) {
+foreach ($object in $OldCompanyMailContacts) {
     $progresscounter += 1
     $progresspercentcomplete = [math]::Round((($progresscounter / $progressref)*100),2)
     $progressStatus = "["+$progresscounter+" / "+$progressref+"]"
@@ -6360,12 +6360,12 @@ foreach ($object in $einsteinMailContacts) {
     }
 }
 
-#Remove Einstein Mail Contacts in Jefferson
-$einsteinMailContacts = Get-MailContact -Filter "ExternalEmailAddress -like '*jefferson.edu'" -ResultSize unlimited
-#$lasteinsteinMailContacts = $einsteinMailContacts[-1..-10000]
-$progressref = $einsteinMailContacts.count
+#Remove OldCompany Mail Contacts in NewCompany
+$OldCompanyMailContacts = Get-MailContact -Filter "ExternalEmailAddress -like '*example.org'" -ResultSize unlimited
+#$lastOldCompanyMailContacts = $OldCompanyMailContacts[-1..-10000]
+$progressref = $OldCompanyMailContacts.count
 $progresscounter = 0
-foreach ($object in $einsteinMailContacts) {
+foreach ($object in $OldCompanyMailContacts) {
     $progresscounter += 1
     $progresspercentcomplete = [math]::Round((($progresscounter / $progressref)*100),2)
     $progressStatus = "["+$progresscounter+" / "+$progressref+"]"
@@ -6391,7 +6391,7 @@ foreach ($object in $allmatchedMailboxes) {
 }
 
 ## Set SharePoint Group Perm
-$matchedTeams = Import-excel "C:\Users\amedrano\Arraya Solutions\Thomas Jefferson - Einstein to Jefferson Migration\ShareGate\Teams\MatchedTeams.xlsx"
+$matchedTeams = Import-excel "C:\Users\amedrano\Arraya Solutions\Thomas NewCompany - OldCompany to NewCompany Migration\ShareGate\Teams\MatchedTeams.xlsx"
 
 #Variables for Admin Center & Site Collection URL
 $AdminCenterURL = "https://tjuv-admin.sharepoint.com"
@@ -6420,7 +6420,7 @@ foreach ($object in $MembersGroups) {
 
 #Gather One Drive Details for Matched Accounts
 $migrationWizDetails = import-csv 
-$allmatchedMailboxes = import-csv "C:\Users\amedrano\Arraya Solutions\Thomas Jefferson - Einstein to Jefferson Migration\Exchange Online\AllMatched_Mailboxes.csv"
+$allmatchedMailboxes = import-csv "C:\Users\amedrano\Arraya Solutions\Thomas NewCompany - OldCompany to NewCompany Migration\Exchange Online\AllMatched_Mailboxes.csv"
 $progressref = $allmatchedMailboxes.count
 $progresscounter = 0
 foreach ($mailbox in $allmatchedMailboxes) {
@@ -6428,16 +6428,16 @@ foreach ($mailbox in $allmatchedMailboxes) {
     $progresspercentcomplete = [math]::Round((($progresscounter / $progressref)*100),2)
     $progressStatus = "["+$progresscounter+" / "+$progressref+"]"
     Write-progress -id 1 -PercentComplete $progresspercentcomplete -Status $progressStatus -Activity "Gathering Details $($mailbox.UserPrincipalName_Source)"
-    #gatherOneDriveDetails - Einstein
+    #gatherOneDriveDetails - OldCompany
 
     if ($matchedMigrationStats = $migrationWizDetails | ?{$_."Owner Principal Name" -eq $mailbox.UserPrincipalName_Source}) {
         if (condition) {
             <# Action to perform if the condition is true #>
         }
-        $mailbox | add-member -type noteproperty -name "OneDriveURL_Source" -Value $matchedEinstein."Site URL" -force
-        $mailbox | add-member -type noteproperty -name "OneDriveLastActivityDate_Source" -Value $matchedEinstein."Last Activity Date" -force
-        $mailbox | add-member -type noteproperty -name "OneDriveFileCount_Source" -Value $matchedEinstein."File Count" -force
-        $mailbox | add-member -type noteproperty -name "OneDriveStorageUsage(Byte)_Source" -Value $matchedEinstein."Storage Used (Byte)" -force
+        $mailbox | add-member -type noteproperty -name "OneDriveURL_Source" -Value $matchedOldCompany."Site URL" -force
+        $mailbox | add-member -type noteproperty -name "OneDriveLastActivityDate_Source" -Value $matchedOldCompany."Last Activity Date" -force
+        $mailbox | add-member -type noteproperty -name "OneDriveFileCount_Source" -Value $matchedOldCompany."File Count" -force
+        $mailbox | add-member -type noteproperty -name "OneDriveStorageUsage(Byte)_Source" -Value $matchedOldCompany."Storage Used (Byte)" -force
     }
     else {
         $mailbox | add-member -type noteproperty -name "OneDriveURL_Source" -Value $null -force
@@ -6445,12 +6445,12 @@ foreach ($mailbox in $allmatchedMailboxes) {
         $mailbox | add-member -type noteproperty -name "OneDriveFileCount_Source" -Value $null -force
         $mailbox | add-member -type noteproperty -name "OneDriveStorageUsage(Byte)_Source" -Value $null -force
     }
-    #gatherOneDriveDetails - Jefferson
-    if ($matchedJefferson = $jeffersonOneDriveDetails | ?{$_."Owner Principal Name" -eq $mailbox.UserPrincipalName_Destination}) {
-        $mailbox | add-member -type noteproperty -name "OneDriveURL_Destination" -Value $matchedJefferson."Site URL" -force
-        $mailbox | add-member -type noteproperty -name "OneDriveLastActivityDate_Destination" -Value $matchedJefferson."Last Activity Date" -force
-        $mailbox | add-member -type noteproperty -name "OneDriveFileCount_Destination" -Value $matchedJefferson."File Count" -force
-        $mailbox | add-member -type noteproperty -name "OneDriveStorageUsage(Byte)_Destination" -Value $matchedJefferson."Storage Used (Byte)" -force
+    #gatherOneDriveDetails - NewCompany
+    if ($matchedNewCompany = $NewCompanyOneDriveDetails | ?{$_."Owner Principal Name" -eq $mailbox.UserPrincipalName_Destination}) {
+        $mailbox | add-member -type noteproperty -name "OneDriveURL_Destination" -Value $matchedNewCompany."Site URL" -force
+        $mailbox | add-member -type noteproperty -name "OneDriveLastActivityDate_Destination" -Value $matchedNewCompany."Last Activity Date" -force
+        $mailbox | add-member -type noteproperty -name "OneDriveFileCount_Destination" -Value $matchedNewCompany."File Count" -force
+        $mailbox | add-member -type noteproperty -name "OneDriveStorageUsage(Byte)_Destination" -Value $matchedNewCompany."Storage Used (Byte)" -force
     }
     else {
         $mailbox | add-member -type noteproperty -name "OneDriveURL_Destination" -Value $null -force
@@ -6478,7 +6478,7 @@ foreach ($site in $EhnSites) {
 
     $matchedSite = @()
     #Check for EHN Labeled Site
-    $EHNLabeledSite = $site.site +"-EHN"
+    $EHNLabeledSite = $site.site +"-old"
     $EHNSite = $site.Site
     if ($matchedSite = $TJUVSites | ? {$_.Site -eq $EHNLabeledSite}) {
         Write-Host "."  -foregroundcolor Green -NoNewline
@@ -7223,11 +7223,11 @@ foreach ($recipient in $allRecipients) {
 $AllRecipientDetails | Export-Excel "C:\Users\amedrano\Arraya Solutions\Ametek - External - 1639 Abaco - Tenant to Tenant Migration\Domain Cutover\Abaco-AllRecipients.xlsx"
 
 #Match Recipients to Mailboxes
-$allEinsteinRecipients = Import-Excel -WorksheetName "Matched-AllRecipients"
+$allOldCompanyRecipients = Import-Excel -WorksheetName "Matched-AllRecipients"
 
-$progressref = $allEinsteinRecipients.count
+$progressref = $allOldCompanyRecipients.count
 $progresscounter = 0
-foreach ($recipient in $allEinsteinRecipients) {
+foreach ($recipient in $allOldCompanyRecipients) {
     $progresscounter += 1
     $progresspercentcomplete = [math]::Round((($progresscounter / $progressref)*100),2)
     $progressStatus = "["+$progresscounter+" / "+$progressref+"]"
@@ -7320,7 +7320,7 @@ foreach ($recipient in $unmatchedRecipients) {
     $progressStatus = "["+$progresscounter+" / "+$progressref+"]"
     Write-progress -id 1 -PercentComplete $progresspercentcomplete -Status $progressStatus -Activity "Matching Recipient Details $($recipient.PrimarySMTPAddress)"
     $msoluserCheck = @()
-    $addressCheck = $recipient.CustomAttribute7 + "@jefferson.edu"
+    $addressCheck = $recipient.CustomAttribute7 + "@example.org"
     if ($msoluserCheck = Get-MsolUser -SearchString $recipient.CustomAttribute7){     
         $recipient | add-member -type noteproperty -name "DisplayName_Destination" -Value $msoluserCheck.DisplayName -force
         $recipient | add-member -type noteproperty -name "UserPrincipalName_Destination" -Value $msoluserCheck.UserPrincipalName -force
@@ -7493,7 +7493,7 @@ foreach ($user in $matchedRecipients) {
     Write-progress -id 1 -PercentComplete $progresspercentcomplete -Status $progressStatus -Activity "Gathering Alternate Address $($user.PrimarySMTPAddress)"
 
     $alternateAddresses = $user.EmailAddresses -split ","
-    $newAlternateAddresses = $alternateAddresses | ?{$_ -notlike "*spo:*" -and $_ -notlike "*sip:*" -and $_ -notlike "*x500*" -and $_ -notlike "*@ehn.mail.onmicrosoft.com" -and $_ -notlike "*@gw.einstein.edu" -and $_ -notlike "*@exchange.einstein.edu" -and $_ -notlike "*@ehn.onmicrosoft.com" -and $_ -ne $user.PrimarySMTPAddress}
+    $newAlternateAddresses = $alternateAddresses | ?{$_ -notlike "*spo:*" -and $_ -notlike "*sip:*" -and $_ -notlike "*x500*" -and $_ -notlike "*@ehn.mail.onmicrosoft.com" -and $_ -notlike "*@gw.og-example.org" -and $_ -notlike "*@exchange.og-example.org" -and $_ -notlike "*@ehn.onmicrosoft.com" -and $_ -ne $user.PrimarySMTPAddress}
     $user | add-member -type noteproperty -name "Filtered_Addresses" -Value ($newAlternateAddresses -join ";") -force
 }
 
@@ -7507,16 +7507,16 @@ foreach ($user in $unmatchedRecipients) {
     Write-progress -id 1 -PercentComplete $progresspercentcomplete -Status $progressStatus -Activity "Gathering Alternate Address $($user.PrimarySMTPAddress)"
 
     $alternateAddresses = $user.EmailAddresses -split ","
-    $newAlternateAddresses = $alternateAddresses | ?{$_ -notlike "*spo:*" -and $_ -notlike "*sip:*" -and $_ -notlike "*x500*" -and $_ -notlike "*@ehn.mail.onmicrosoft.com" -and $_ -notlike "*@gw.einstein.edu" -and $_ -notlike "*@exchange.einstein.edu" -and $_ -notlike "*@ehn.onmicrosoft.com" -and $_ -ne $user.PrimarySMTPAddress}
+    $newAlternateAddresses = $alternateAddresses | ?{$_ -notlike "*spo:*" -and $_ -notlike "*sip:*" -and $_ -notlike "*x500*" -and $_ -notlike "*@ehn.mail.onmicrosoft.com" -and $_ -notlike "*@gw.og-example.org" -and $_ -notlike "*@exchange.og-example.org" -and $_ -notlike "*@ehn.onmicrosoft.com" -and $_ -ne $user.PrimarySMTPAddress}
     $user | add-member -type noteproperty -name "Aliases" -Value ($newAlternateAddresses -join ";") -force
 }
 
 #Match Recipients to Mailboxes
-$allEinsteinRecipients = Import-Excel -WorksheetName "Matched-AllRecipients"
+$allOldCompanyRecipients = Import-Excel -WorksheetName "Matched-AllRecipients"
 
-$progressref = $allEinsteinRecipients.count
+$progressref = $allOldCompanyRecipients.count
 $progresscounter = 0
-foreach ($recipient in $allEinsteinRecipients) {
+foreach ($recipient in $allOldCompanyRecipients) {
     $progresscounter += 1
     $progresspercentcomplete = [math]::Round((($progresscounter / $progressref)*100),2)
     $progressStatus = "["+$progresscounter+" / "+$progressref+"]"
@@ -7801,7 +7801,7 @@ function Add-TenantDomainCutover {
     $progressref = ($allMatchedRecipients).count
     $progresscounter = 0
     $AllErrors = @()
-    $newDomain = "einstein.edu"
+    $newDomain = "og-example.org"
     $notFoundUsers = @()
     foreach ($matchedRecipient in $allMatchedRecipients| sort userprincipalname) {
         #Progress Bar 1B
@@ -7956,12 +7956,12 @@ function Add-TenantDomainCutover {
 
 
 #Add Current DirSync Status
-$einsteinUsers = Import-Csv "C:\Users\amedrano\Arraya Solutions\Thomas Jefferson External - Einstein to Jefferson Migration\Domain Cutover\All_EinsteinUsers_10_18_2022.csv"
+$OldCompanyUsers = Import-Csv "C:\Users\amedrano\Arraya Solutions\Thomas NewCompany External - OldCompany to NewCompany Migration\Domain Cutover\All_OldCompanyUsers_10_18_2022.csv"
 Connect-AzureAD
 
-$progressref = ($einsteinUsers).count
+$progressref = ($OldCompanyUsers).count
 $progresscounter = 0
-foreach ($user in $einsteinUsers) {
+foreach ($user in $OldCompanyUsers) {
     $destinationUPN = $user.UserPrincipalName
     $progresscounter += 1
     $progresspercentcomplete = [math]::Round((($progresscounter / $progressref)*100),2)

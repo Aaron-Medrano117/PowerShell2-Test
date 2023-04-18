@@ -37,15 +37,16 @@ function Write-ProgressHelper {
 }
 
 $WorkSheetName = "Wave6_Details"
-$waveGroup = Import-Excel -WorksheetName $WorkSheetName -Path "C:\Users\amedrano\Arraya Solutions\Spectra - External - Ext - 1777 Spectra to OVG T2T Migration\Project Files\1777-Spectra-OVG-Users Master List.xlsx"
+$waveGroup = Import-Excel -WorksheetName $WorkSheetName -Path ~\1777-OldCompany-OVG-Users Master List.xlsx"
 $tenant = "OVG"
 #ProgressBar
 $progresscounter = 1
 $global:start = Get-Date
 [nullable[double]]$global:secondsRemaining = $null
+$TotalCount = $wavegroup.count
 foreach ($user in $waveGroup) {
     #progress bar
-    Write-ProgressHelper -Activity "Gathering Details for $($user.Name) in $($tenant) tenant" -ProgressCounter ($progresscounter++) -TotalCount ($waveGroup).count
+    Write-ProgressHelper -Activity "Gathering Details for $($user.Name) in $($tenant) tenant" -ProgressCounter ($progresscounter++) -TotalCount $TotalCount
     #Clear Variables
     $msoluser = @()
     $recipient = @()
@@ -124,32 +125,32 @@ foreach ($user in $waveGroup) {
         $user | Add-Member -Type NoteProperty -name "MBXItemCount_$($tenant)" -Value $MBXStats.ItemCount -force
         $user | Add-Member -Type NoteProperty -Name "ArchiveStatus_$($tenant)" -Value $mailbox.ArchiveStatus -force
 }
-$waveGroup | Export-Excel -WorksheetName "Wave6_Details2" -Path "C:\Users\amedrano\Arraya Solutions\Spectra - External - Ext - 1777 Spectra to OVG T2T Migration\Project Files\1777-Spectra-OVG-Users Master List.xlsx" -Show
+$waveGroup | Export-Excel -WorksheetName "Wave6_Details2" -Path ~\1777-OldCompany-OVG-Users Master List.xlsx" -Show
 Write-Host "Completed in"((Get-Date) - $global:start).ToString('hh\:mm\:ss')"" -ForegroundColor Cyan
 ## End Script ##
 
-#Set CompanyName to Spectra
+#Set CompanyName to OldCompany
 # Specify if Wave 1
-$allSpectraUsers = Import-CSV
+$allOldCompanyUsers = Import-CSV
 
-$allSpectraUsers = $allSpectraUsers | ?{$_.ExcludeUser -eq $false}
-$wave1 = $allSpectraUsers | ?{$_."Wave1 Comm" -eq "Yes"}
-$wave2 = $allSpectraUsers | ?{$_."Wave2 Comm" -eq "Yes"}
-$wave3 = $allSpectraUsers | ?{$_."Wave3 Comm" -eq "Yes"}
+$allOldCompanyUsers = $allOldCompanyUsers | ?{$_.ExcludeUser -eq $false}
+$wave1 = $allOldCompanyUsers | ?{$_."Wave1 Comm" -eq "Yes"}
+$wave2 = $allOldCompanyUsers | ?{$_."Wave2 Comm" -eq "Yes"}
+$wave3 = $allOldCompanyUsers | ?{$_."Wave3 Comm" -eq "Yes"}
 
-$progressref = ($allSpectraUsers).count
+$progressref = ($allOldCompanyUsers).count
 $progresscounter = 0
-foreach ($user in $allSpectraUsers) {
+foreach ($user in $allOldCompanyUsers) {
     $progresscounter += 1
     $progresspercentcomplete = [math]::Round((($progresscounter / $progressref)*100),2)
     $progressStatus = "["+$progresscounter+" / "+$progressref+"]"
     Write-progress -PercentComplete $progresspercentcomplete -Status $progressStatus -Activity "Setting Company Name for $($user.DisplayName)"
     
-    Get-AzureADUser -SearchString $user.OakviewUPN | Set-AzureADUser -CompanyName "Spectra"
+    Get-AzureADUser -SearchString $user.NewCompanyUPN | Set-AzureADUser -CompanyName "OldCompany"
 }
 
 # Get MailboxStats for InActive Mailboxes
-$InactiveMailboxes = Import-Csv "C:\Users\aaron.medrano\Desktop\OakView\SpectraXP_InactiveMailboxes.csv"
+$InactiveMailboxes = Import-Csv "C:\Users\aaron.medrano\Desktop\NewCompany\OldCompanyXP_InactiveMailboxes.csv"
 $progressref = ($InactiveMailboxes).count
 $progresscounter = 0
 foreach ($mailbox in $InactiveMailboxes) {
@@ -181,7 +182,7 @@ Get-MailboxStatistics ee193bfd-f80f-46e0-bda7-e3588f6787f0 -IncludeSoftDeletedRe
 #Update users to license group
 
 $WorkSheetName = "UserMailboxes2"
-$waveGroup = Import-Excel -WorksheetName $WorkSheetName -Path "C:\Users\amedrano\Arraya Solutions\Spectra - External - Ext - 1777 Spectra to OVG T2T Migration\Project Files\1777-Spectra-OVG-AllMatched-Mailboxes.xlsx"
+$waveGroup = Import-Excel -WorksheetName $WorkSheetName -Path "~\1777-OldCompany-OVG-AllMatched-Mailboxes.xlsx"
 #ProgressBar
 $progresscounter = 1
 $global:start = Get-Date
@@ -197,7 +198,7 @@ foreach ($user in $waveGroup) {
     $azureUser = @()
 
     if ($user.UserPrincipalName_OVG) {
-        $licenses = $user.Licenses_Spectra.split(",")
+        $licenses = $user.Licenses_OldCompany.split(",")
         #Get Azure License Group Details
         if ($licenses -match "ATP_ENTERPRISE" -and $licenses -match "MCOMEETADV" -and $licenses -match "SPE_E3" -and $licenses -match "FLOW_FREE") {
             $AZLicenseGroup = Get-AzureADGroup -SearchString "OVG360 MicrosoftE3_ATP P1_Audio License Group"
@@ -206,7 +207,7 @@ foreach ($user in $waveGroup) {
             $AZLicenseGroup = Get-AzureADGroup -SearchString "OVG360 OfficeE3_AADP1_ATPP1_AudioConf_NonManagedDevice License"
         }
         elseif ($licenses -match "ENTERPRISEPACK" -and $licenses -match "ATP_ENTERPRISE" -and $licenses -match "AAD_PREMIUM") {
-            $AZLicenseGroup = Get-AzureADGroup -SearchString "OVG360 OfficeE3_ADP1_ATPP1 No_SpectraIT_Workstation"
+            $AZLicenseGroup = Get-AzureADGroup -SearchString "OVG360 OfficeE3_ADP1_ATPP1 No_OldCompanyIT_Workstation"
         }
         elseif ($licenses -match "SPE_F1" -and $licenses -match "EXCHANGESTANDARD") {
             $AZLicenseGroup = Get-AzureADGroup -SearchString "OVG360 Email Outlook Access Licensed Users"
@@ -306,7 +307,7 @@ foreach ($user in $waveGroup) {
 
     if ($user.UserPrincipalName_OVG) {
         if ($azureUser = Get-AzureADUser -SearchString $user.UserPrincipalName_OVG) {
-            if ($user.Licenses_Spectra -like "*FLOW_FREE*") {
+            if ($user.Licenses_OldCompany -like "*FLOW_FREE*") {
                 Write-Host "Add FLOW_FREE to $($user.UserPrincipalName_OVG)" -ForegroundColor Green -NoNewline
                 try {
                     Set-MsolUserLicense -UserPrincipalName $user.UserPrincipalName_OVG -AddLicenses $FlowLicense.AccountSkuId -ErrorAction Stop
@@ -324,7 +325,7 @@ foreach ($user in $waveGroup) {
                     continue
                 }
             }
-            if ($user.Licenses_Spectra -like "*POWER_BI_STANDARD*") {
+            if ($user.Licenses_OldCompany -like "*POWER_BI_STANDARD*") {
                 Write-Host "Add POWER_BI_STANDARD to $($user.UserPrincipalName_OVG)" -ForegroundColor Green
                 try {
                     Set-MsolUserLicense -UserPrincipalName $user.UserPrincipalName_OVG -AddLicenses $PowerBILicense.AccountSkuId -ErrorAction Stop
@@ -386,7 +387,7 @@ function Write-ProgressHelper {
 
 #Temporary Cutover Users
 $WorkSheetName = "Wave6_Details"
-$waveGroup = Import-Excel -WorksheetName $WorkSheetName -Path "C:\Users\amedrano\Arraya Solutions\Spectra - External - Ext - 1777 Spectra to OVG T2T Migration\Project Files\1777-Spectra-OVG-Users Master List.xlsx"
+$waveGroup = Import-Excel -WorksheetName $WorkSheetName -Path ~\1777-OldCompany-OVG-Users Master List.xlsx"
 #ProgressBar
 $progresscounter = 1
 $global:start = Get-Date
@@ -395,12 +396,12 @@ $global:start = Get-Date
 $allErrors = @()
 foreach ($user in $waveGroup) {
     $DestinationPrimarySMTPAddress = $user.PrimarySmtpAddress_OVG 
-    $SourcePrimarySMTPAddress = $user.PrimarySmtpAddress_Spectra
+    $SourcePrimarySMTPAddress = $user.PrimarySmtpAddress_OldCompany
     #progress bar
     Write-ProgressHelper -Activity "Updating Forwarding for $($SourcePrimarySMTPAddress)" -ProgressCounter ($progresscounter++) -TotalCount ($waveGroup).count
 
     if ($user.ToMoveOrNotToMove -eq "Move") {
-        if ($user.RecipientTypeDetails_Spectra -and $user.RecipientTypeDetails_OVG) {
+        if ($user.RecipientTypeDetails_OldCompany -and $user.RecipientTypeDetails_OVG) {
             Write-Host "Cutting Over User $($SourcePrimarySMTPAddress) .. " -foregroundcolor Cyan -nonewline
             ## Set Mailbox to Forward from Source to Destination Mailbox
             Write-Host "Set Forward on Mailbox $($DestinationPrimarySMTPAddress)  " -foregroundcolor Magenta -nonewline
@@ -436,13 +437,13 @@ foreach ($user in $bruleeUsers) {
 
     if ($user.UserPrincipalName_OVG) {
         #Get Azure License Group Details
-        if ($user.Licenses_Spectra -like "*spectraxp:SPE_E3*") {
+        if ($user.Licenses_OldCompany -like "*OldCompanyxp:SPE_E3*") {
             $AZLicenseGroup = Get-AzureADGroup -SearchString "OVG360 MS365 E3 Licensed Users"
         }
-        elseif ($user.Licenses_Spectra -like "*spectraxp:ENTERPRISEPACK*") {
+        elseif ($user.Licenses_OldCompany -like "*OldCompanyxp:ENTERPRISEPACK*") {
             $AZLicenseGroup = Get-AzureADGroup -SearchString "OVG360 MS365 E3 Licensed Users"
         }
-        elseif ($user.Licenses_Spectra -like "*spectraxp:SPB*") {
+        elseif ($user.Licenses_OldCompany -like "*OldCompanyxp:SPB*") {
             $AZLicenseGroup = Get-AzureADGroup -SearchString "OVG360 MS Business Premium Licensed Users"
         }
     
@@ -477,7 +478,7 @@ foreach ($user in $bruleeUsers) {
                 }
             }
             #Remove from Exchange Standard Group
-            if ($user.Licenses_Spectra -like "*spectraxp:SPE_E3*" -or $user.Licenses_Spectra -like "*spectraxp:ENTERPRISEPACK*" -or $user.Licenses_Spectra -like "*spectraxp:SPB*") {
+            if ($user.Licenses_OldCompany -like "*OldCompanyxp:SPE_E3*" -or $user.Licenses_OldCompany -like "*OldCompanyxp:ENTERPRISEPACK*" -or $user.Licenses_OldCompany -like "*OldCompanyxp:SPB*") {
                 $EXOPlan1LicenseGroup = Get-AzureADGroup -SearchString "OVG360 Exchange Plan 1 Licensed Users"
                 try {
                     Add-AzureADGroupMember -ObjectId $EXOPlan1LicenseGroup.ObjectID -RefObjectId $azureUser.ObjectId -ErrorAction Stop
@@ -546,7 +547,7 @@ function Write-ProgressHelper {
 }
 
 $WorkSheetName = "Master_MatchedUsers"
-$waveGroup = Import-Excel -WorksheetName $WorkSheetName -Path "C:\Users\amedrano\Arraya Solutions\Spectra - External - Ext - 1777 Spectra to OVG T2T Migration\Project Files\1777-Spectra-OVG-Users Master List.xlsx"
+$waveGroup = Import-Excel -WorksheetName $WorkSheetName -Path ~\1777-OldCompany-OVG-Users Master List.xlsx"
 $tenant = "OVG"
 
 #ProgressBar
@@ -645,7 +646,7 @@ function Write-ProgressHelper {
 }
 
 $WorkSheetName = "UserMailboxes"
-$waveGroup = Import-Excel -WorksheetName $WorkSheetName -Path "C:\Users\amedrano\Arraya Solutions\Spectra - External - Ext - 1777 Spectra to OVG T2T Migration\Project Files\1777-Spectra-OVG-MailboxList.xlsx"
+$waveGroup = Import-Excel -WorksheetName $WorkSheetName -Path ~\1777-OldCompany-OVG-MailboxList.xlsx"
 $tenant = "OVG"
 #ProgressBar
 $progresscounter = 1
@@ -732,16 +733,16 @@ foreach ($user in $waveGroup) {
         $user | Add-Member -Type NoteProperty -name "MBXItemCount_$($tenant)" -Value $MBXStats.ItemCount -force
         $user | Add-Member -Type NoteProperty -Name "ArchiveStatus_$($tenant)" -Value $mailbox.ArchiveStatus -force
 }
-$waveGroup | Export-Excel -WorksheetName "UserMailboxes" -Path "C:\Users\amedrano\Arraya Solutions\Spectra - External - Ext - 1777 Spectra to OVG T2T Migration\Project Files\1777-Spectra-OVG-MailboxList.xlsx" -Show
+$waveGroup | Export-Excel -WorksheetName "UserMailboxes" -Path ~\1777-OldCompany-OVG-MailboxList.xlsx" -Show
 Write-Host "Completed in"((Get-Date) - $global:start).ToString('hh\:mm\:ss')"" -ForegroundColor Cyan
 
 
 #Check If MFA Enabled
 ## Export Registered Authentication Methods from https://portal.azure.com/#view/Microsoft_AAD_IAM/AuthenticationMethodsMenuBlade/~/UserRegistrationDetails
-$AuthMethodsRegUsers = Import-Csv "C:\Users\amedrano\Arraya Solutions\Spectra - External - Ext - 1777 Spectra to OVG T2T Migration\Project Files\exportUserRegistrationDetails_2023-3-22.csv"
+$AuthMethodsRegUsers = Import-Csv ~\exportUserRegistrationDetails_2023-3-22.csv"
 
 $WorkSheetName = "UserMailboxes"
-$waveGroup = Import-Excel -WorksheetName $WorkSheetName -Path "C:\Users\amedrano\Arraya Solutions\Spectra - External - Ext - 1777 Spectra to OVG T2T Migration\Project Files\1777-Spectra-OVG-MailboxList.xlsx"
+$waveGroup = Import-Excel -WorksheetName $WorkSheetName -Path ~\1777-OldCompany-OVG-MailboxList.xlsx"
 $tenant = "OVG"
 #ProgressBar
 $progresscounter = 1
@@ -777,7 +778,7 @@ foreach ($user in $waveGroup) {
     }  
 }
 
-$waveGroup | Export-Excel -WorksheetName "OVG-MFACheck" -Path "C:\Users\amedrano\Arraya Solutions\Spectra - External - Ext - 1777 Spectra to OVG T2T Migration\Project Files\1777-Spectra-OVG-MailboxList.xlsx" -Show -ClearSheet
+$waveGroup | Export-Excel -WorksheetName "OVG-MFACheck" -Path ~\1777-OldCompany-OVG-MailboxList.xlsx" -Show -ClearSheet
 Write-Host "Completed in"((Get-Date) - $global:start).ToString('hh\:mm\:ss')"" -ForegroundColor Cyan
 
 
@@ -827,21 +828,21 @@ foreach ($user in $errorUsers) {
     $AllErrorUsersDetails += $currenterrorDetail 
 }
 
-$AllErrorUsersDetails | Export-Excel -WorksheetName "OVG-ErrorCodes" -Path "C:\Users\amedrano\Arraya Solutions\Spectra - External - Ext - 1777 Spectra to OVG T2\UsersWithErrors.xlsx" -Show -ClearSheet
+$AllErrorUsersDetails | Export-Excel -WorksheetName "OVG-ErrorCodes" -Path "C:\Users\amedrano\Arraya Solutions\OldCompany - External - Ext - 1777 OldCompany to OVG T2\UsersWithErrors.xlsx" -Show -ClearSheet
 Write-Host "Completed in"((Get-Date) - $global:start).ToString('hh\:mm\:ss')"" -ForegroundColor Cyan
 
  
 # write a script to pull all the permissions of the D: drive and export to a csv file. Pull the first 3 levels of folders and subfolders. 
 $global:start = Get-Date
 $Folder = "D:\"
-$Folder | Get-ChildItem -Recurse -Depth 3 | Get-Acl | Select-Object -Property Path, Access, IdentityReference | Export-Csv "C:\Users\amedrano\Arraya Solutions\Spectra - External - Ext - 1777 Spectra to OVG T2T Migration\Project Files\1777-Spectra-OVG-Permissions.csv" -NoTypeInformation
+$Folder | Get-ChildItem -Recurse -Depth 3 | Get-Acl | Select-Object -Property Path, Access, IdentityReference | Export-Csv ~\1777-OldCompany-OVG-Permissions.csv" -NoTypeInformation
 Write-Host "Completed in"((Get-Date) - $global:start).ToString('hh\:mm\:ss')"" -ForegroundColor Cyan
 
 
 #Match OneDrive Users to Mailboxes
-$OVGOneDriveReport = Import-Csv "C:\Users\amedrano\Arraya Solutions\Spectra - External - Ext - 1777 Spectra to OVG T2T Migration\Project Files\OVGOneDriveActivityUserDetail4_17_2023 5_48_48 PM.csv"
-$SpectraOneDriveReport = Import-Csv "C:\Users\amedrano\Arraya Solutions\Spectra - External - Ext - 1777 Spectra to OVG T2T Migration\Project Files\SpectraOneDriveActivityUserDetail4_17_2023 5_45_24 PM.csv"
-$AllMatchedMailboxes = Import-Excel "C:\Users\amedrano\Arraya Solutions\Spectra - External - Ext - 1777 Spectra to OVG T2T Migration\Project Files\1777-Spectra-OVG-AllMatched-Mailboxes.xlsx" -WorksheetName "UserMailboxes"
+$OVGOneDriveReport = Import-Csv ~\OVGOneDriveActivityUserDetail4_17_2023 5_48_48 PM.csv"
+$OldCompanyOneDriveReport = Import-Csv ~\OldCompanyOneDriveActivityUserDetail4_17_2023 5_45_24 PM.csv"
+$AllMatchedMailboxes = Import-Excel "~\1777-OldCompany-OVG-AllMatched-Mailboxes.xlsx" -WorksheetName "UserMailboxes"
 
 # Initialize an empty array to store user hash tables
 $FullOneDriveReportArray = @()
@@ -855,7 +856,7 @@ $TotalCount = ($AllMatchedMailboxes).count
 foreach ($user in $AllMatchedMailboxes) {
     Write-ProgressHelper -Activity "Gathering OneDrive Details for $($user.DisplayName_OVG)" -ProgressCounter ($progresscounter++) -TotalCount $TotalCount
     $OVGUserDetails = $OVGOneDriveReport | ? {$_."User Principal Name" -eq $user.UserPrincipalName_OVG}
-    $SpectraUserDetails = $SpectraOneDriveReport | ? {$_."User Principal Name" -eq $user.UserPrincipalName_Spectra}
+    $OldCompanyUserDetails = $OldCompanyOneDriveReport | ? {$_."User Principal Name" -eq $user.UserPrincipalName_OldCompany}
 
     # Create Hashtable for each user
     $FullOneDriveReport = @{
@@ -865,11 +866,11 @@ foreach ($user in $AllMatchedMailboxes) {
         LastActivityDate_OVG = $OVGUserDetails."Last Activity Date"
         ViewedOrEditedFileCount_OVG = $OVGUserDetails."Viewed Or Edited File Count"
         SyncedFileCount_OVG = $OVGUserDetails."Synced File Count"
-        UserPrincipalName_Spectra = $user.UserPrincipalName_Spectra
-        IsDeleted_Spectra = $SpectraUserDetails."Is Deleted"
-        LastActivityDate_Spectra = $SpectraUserDetails."Last Activity Date"
-        ViewedOrEditedFileCount_Spectra = $SpectraUserDetails."Viewed Or Edited File Count"
-        SyncedFileCount_Spectra = $SpectraUserDetails."Synced File Count"
+        UserPrincipalName_OldCompany = $user.UserPrincipalName_OldCompany
+        IsDeleted_OldCompany = $OldCompanyUserDetails."Is Deleted"
+        LastActivityDate_OldCompany = $OldCompanyUserDetails."Last Activity Date"
+        ViewedOrEditedFileCount_OldCompany = $OldCompanyUserDetails."Viewed Or Edited File Count"
+        SyncedFileCount_OldCompany = $OldCompanyUserDetails."Synced File Count"
     }
 
     # Add the user's hash table to the array
@@ -886,9 +887,9 @@ $global:start = Get-Date
 $TotalCount = ($AllMatchedMailboxes).count
 $FullOneDriveReportArray2 = @()
 
-#Initialize Hash Tables to store Spectra and OVG user data with UserPrincipalName as KEY and an array of corresponding user data as associated VALUE
+#Initialize Hash Tables to store OldCompany and OVG user data with UserPrincipalName as KEY and an array of corresponding user data as associated VALUE
 $OVGUsersHash = @{}
-$SpectraUsersHash = @{}
+$OldCompanyUsersHash = @{}
  
 Write-Host ""
 Write-Host "Processing imported data to add to hash table..."
@@ -917,8 +918,8 @@ $OVGOneDriveReport | foreach{
 }
 Write-Host "Processing imported data to add to secondary hash table..."
 
-#Process Spectra imported data to fill associated hash table $SpectraUsersHash
-$SpectraOneDriveReport | foreach{
+#Process OldCompany imported data to fill associated hash table $OldCompanyUsersHash
+$OldCompanyOneDriveReport | foreach{
     #hash KEY
     $upn = $_.'User Principal Name'
 
@@ -930,34 +931,34 @@ $SpectraOneDriveReport | foreach{
 
     #initialize PSObject to be used as hash value
     $currentUser = new-object PSObject
-    $currentUser | Add-Member -type NoteProperty -Name "UserPrincipalName_Spectra" -Value $upn -Force
-    $currentUser | Add-Member -type NoteProperty -Name "IsDeleted_Spectra" -Value $isDeleted -Force
-    $currentUser | Add-Member -type NoteProperty -Name "LastActivityDate_Spectra" -Value $lastActivity -Force
-    $currentUser | Add-Member -type NoteProperty -Name "ViewedOrEditedFileCount_Spectra" -Value $viewedOrEditedFileCount -Force
-    $currentUser | Add-Member -type NoteProperty -Name "SyncedFileCount_Spectra" -Value $syncedFileCount -Force
+    $currentUser | Add-Member -type NoteProperty -Name "UserPrincipalName_OldCompany" -Value $upn -Force
+    $currentUser | Add-Member -type NoteProperty -Name "IsDeleted_OldCompany" -Value $isDeleted -Force
+    $currentUser | Add-Member -type NoteProperty -Name "LastActivityDate_OldCompany" -Value $lastActivity -Force
+    $currentUser | Add-Member -type NoteProperty -Name "ViewedOrEditedFileCount_OldCompany" -Value $viewedOrEditedFileCount -Force
+    $currentUser | Add-Member -type NoteProperty -Name "SyncedFileCount_OldCompany" -Value $syncedFileCount -Force
 
     #Add to OVG Hash with UPN as HASH KEY and current user data object as HASH VALUE
-    $SpectraUsersHash.Add($upn, $currentUser)
+    $OldCompanyUsersHash.Add($upn, $currentUser)
 }
 
 foreach ($user in $AllMatchedMailboxes) {
     Write-ProgressHelper -Activity "Gathering OneDrive Details for $($user.DisplayName_OVG)" -ProgressCounter ($progresscounter++) -TotalCount $TotalCount
     #$OVGUserDetails = $OVGOneDriveReport | ? {$_."User Principal Name" -eq $user.UserPrincipalName_OVG}
-    #$SpectraUserDetails = $SpectraOneDriveReport | ? {$_."User Principal Name" -eq $user.UserPrincipalName_Spectra}
+    #$OldCompanyUserDetails = $OldCompanyOneDriveReport | ? {$_."User Principal Name" -eq $user.UserPrincipalName_OldCompany}
 
     if($user.UserPrincipalName_OVG)
     {
         $ovgUPN = $user.UserPrincipalName_OVG.toString()
     }
 
-    if($user.UserPrincipalName_Spectra)
+    if($user.UserPrincipalName_OldCompany)
     {
-        $spectraUPN = $user.UserPrincipalName_Spectra.toString()
+        $OldCompanyUPN = $user.UserPrincipalName_OldCompany.toString()
     }
 
-    #obtain data set from hash table associated with OVG and Spectra UPNs
+    #obtain data set from hash table associated with OVG and OldCompany UPNs
     $OVGUserDetails = $OVGUsersHash[$ovgUPN]
-    $SpectraUserDetails = $SpectraUsersHash[$spectraUPN]
+    $OldCompanyUserDetails = $OldCompanyUsersHash[$OldCompanyUPN]
 
     $currentUser = new-object PSObject
     $currentUser | add-member -type noteproperty -name "DisplayName" -Value $user.DisplayName_OVG -Force
@@ -966,11 +967,11 @@ foreach ($user in $AllMatchedMailboxes) {
     $currentUser | Add-Member -type NoteProperty -Name "LastActivityDate_OVG" -Value $OVGUserDetails.LastActivityDate_OVG -Force
     $currentUser | Add-Member -type NoteProperty -Name "ViewedOrEditedFileCount_OVG" -Value $OVGUserDetails.ViewedOrEditedFileCount_OVG -Force
     $currentUser | Add-Member -type NoteProperty -Name "SyncedFileCount_OVG" -Value $OVGUserDetails.SyncedFileCount_OVG -Force
-    $currentUser | Add-Member -type NoteProperty -Name "UserPrincipalName_Spectra" -Value $user.UserPrincipalName_Spectra -Force
-    $currentUser | Add-Member -type NoteProperty -Name "IsDeleted_Spectra" -Value $SpectraUserDetails.IsDeleted_Spectra -Force
-    $currentUser | Add-Member -type NoteProperty -Name "LastActivityDate_Spectra" -Value $SpectraUserDetails.LastActivityDate_Spectra -Force
-    $currentUser | Add-Member -type NoteProperty -Name "ViewedOrEditedFileCount_Spectra" -Value $SpectraUserDetails.ViewedOrEditedFileCount_Spectra -Force
-    $currentUser | Add-Member -type NoteProperty -Name "SyncedFileCount_Spectra" -Value $SpectraUserDetails.SyncedFileCount_Spectra -Force
+    $currentUser | Add-Member -type NoteProperty -Name "UserPrincipalName_OldCompany" -Value $user.UserPrincipalName_OldCompany -Force
+    $currentUser | Add-Member -type NoteProperty -Name "IsDeleted_OldCompany" -Value $OldCompanyUserDetails.IsDeleted_OldCompany -Force
+    $currentUser | Add-Member -type NoteProperty -Name "LastActivityDate_OldCompany" -Value $OldCompanyUserDetails.LastActivityDate_OldCompany -Force
+    $currentUser | Add-Member -type NoteProperty -Name "ViewedOrEditedFileCount_OldCompany" -Value $OldCompanyUserDetails.ViewedOrEditedFileCount_OldCompany -Force
+    $currentUser | Add-Member -type NoteProperty -Name "SyncedFileCount_OldCompany" -Value $OldCompanyUserDetails.SyncedFileCount_OldCompany -Force
  
     # Add the users to the array
     $FullOneDriveReportArray2 += $currentUser
