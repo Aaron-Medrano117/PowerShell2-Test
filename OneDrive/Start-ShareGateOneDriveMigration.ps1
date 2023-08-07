@@ -102,7 +102,7 @@ else {
 function Start-ShareGateOneDriveMigration {
     Param(
         [Parameter(Mandatory = $true)]
-        [ValidateSet('RequestOneDrive', 'AddSecondaryAdmin', 'Migrate', 'Test')]
+        [ValidateSet('RequestOneDrive', 'AddSecondaryAdmin', 'Migrate')]
         [string[]]$Operation,
 
         [Parameter(Mandatory=$false, HelpMessage="What is the source email address, UPN, or OneDriveURL?")]
@@ -117,7 +117,10 @@ function Start-ShareGateOneDriveMigration {
 
         [Parameter(Mandatory = $false, HelpMessage="What is the Destination Folder Name to migrate data to?")]
         [ValidateSet('Custom', 'Migrate-OneDrive')]
-        [string]$DestinationFolder
+        [string]$DestinationFolder,
+
+        [Parameter(Mandatory = $False)]
+        [Switch]$Test
 
     )
     #Global Variables
@@ -136,6 +139,14 @@ function Start-ShareGateOneDriveMigration {
     }
     else {
         $Global:DestinationAdminUrl = $Global:DestinationTenant.Site
+    }
+
+    # Specify if Test Migration
+    if ($test) {
+        $global:test = $true
+    }
+    else {
+        $global:test = $null
     }
 
     ## Functions
@@ -180,7 +191,7 @@ function Start-ShareGateOneDriveMigration {
             }
             try {
                 # Look up OneDrive URL using the sharepoint online method
-                Connect-SPOService -Url $TenantAdminUrl.tostring() -Credential $TenantCredentials
+                Connect-SPOService -Url $TenantAdminUrl.tostring() #-Credential $TenantCredentials
                 $OneDriveUrlCheck = Get-SPOSite -Filter "Owner -eq '$UPN' -and URL -like '*-my.sharepoint*'" -IncludePersonalSite $true -ErrorAction SilentlyContinue
                 $OneDriveUrlCheck = $OneDriveUrlCheck.TrimEnd('/')
                 Write-Host "$($TenantLocation) $($UPN): Found - " -ForegroundColor Green -NoNewline
@@ -193,7 +204,7 @@ function Start-ShareGateOneDriveMigration {
                     Connect-SPOService -Url $TenantAdminUrl.tostring() -Credential $TenantCredentials
                     Request-SPOPersonalSite -UserEmails $DestinationAccountInfo -ErrorAction Stop
                     Write-Host "Destination OneDrive Site Requested for $($DestinationAccountInfo)" -ForegroundColor Green
-                    $RequestedSite += $User
+                    #$RequestedSite += $User
                 }
                 continue
             }
@@ -232,16 +243,6 @@ function Start-ShareGateOneDriveMigration {
         }
         catch {    
             try {
-                $AdminCheck = Get-SPOUser -Site $OneDriveURL.ToString() -ErrorAction Stop
-            }
-            catch {
-                #If failed, switch to TenantLocation Tenant
-                Write-Host ".. switching to $($TenantLocation) Tenant... " -foregroundcolor Yellow -NoNewline
-                Connect-SPOService $TenantAdminUrl -ModernAuth $true #-Credential $TenantCredentials -ErrorAction Stop
-            }
-
-            #add Destination Tenant Admin as Site Admin
-            try {
                 $result = Set-SPOUser -Site $OneDriveURL -LoginName $global:TenantCredentials.username.ToString() -IsSiteCollectionAdmin $true -ErrorAction Stop
                 Write-Host "$($global:TenantCredentials.username.ToString()) Added as Site Admin." -ForegroundColor Green
             }
@@ -249,8 +250,7 @@ function Start-ShareGateOneDriveMigration {
                 Write-Host "Unable to Add Admin for $($DestinationAccountInfo)" -ForegroundColor Red
                 $FailedToAddAdminToOneDrive += $User
                 return $error[0]
-            }
-            
+            }            
         }
     }
 
@@ -325,34 +325,33 @@ function Start-ShareGateOneDriveMigration {
 
         # Copy OneDrive Files from Source to Destination
         if ($DestinationDocumentLibrary) {
-            switch ($Operationx) {
-                "Test" {
-                    # Test Copy with Insane Mode
-                    $TaskName = "Test OneDrive Migration $($SourceAccountInfo) to $($DestinationAccountInfo)"
-                    # Progress Bar Current 2
-                    Write-Progress -Id 2 -Activity "$($TaskName)"  
-                    if ($DestinationFolderName) {
-                        $Result = Copy-Content -SourceList $SourceDocumentLibrary -DestinationList $DestinationDocumentLibrary -DestinationFolder $DestinationFolderName -InsaneMode -CopySettings $CopySettings -TaskName $TaskName -WarningAction SilentlyContinue -WhatIf
-                    }
-                    else {
-                        $Result = Copy-Content -SourceList $SourceDocumentLibrary -DestinationList $DestinationDocumentLibrary -InsaneMode -CopySettings $CopySettings -TaskName $TaskName -WarningAction SilentlyContinue -WhatIf               
-                    }
-                    $OneDriveResults | Add-Member -MemberType NoteProperty -Name "SyncType" -Value "Test-$CopyOperation"
-                 }
-                Default {
-                    # Copy with Insane Mode
-                    $TaskName = "$($CopyOperation) OneDrive Migration $($SourceAccountInfo) to $($DestinationAccountInfo)"
-                    # Progress Bar Current 2
-                    Write-Progress -Id 2 -Activity "$($TaskName)"
-                    
-                    if ($DestinationFolderName) {
-                        $Result = Copy-Content -SourceList $SourceDocumentLibrary -DestinationList $DestinationDocumentLibrary -DestinationFolder $DestinationFolderName -InsaneMode -CopySettings $CopySettings -TaskName $TaskName -WarningAction SilentlyContinue
-                    }
-                    else {
-                        $Result = Copy-Content -SourceList $SourceDocumentLibrary -DestinationList $DestinationDocumentLibrary -InsaneMode -CopySettings $CopySettings -TaskName $TaskName -WarningAction SilentlyContinue
-                    }
-                    $OneDriveResults | Add-Member -MemberType NoteProperty -Name "SyncType" -Value $CopyOperation
+            if ($global:Test) {
+                # Test Copy with Insane Mode
+                $TaskName = "Test OneDrive Migration $($SourceAccountInfo) to $($DestinationAccountInfo)"
+                # Progress Bar Current 2
+                Write-Progress -Id 2 -Activity "$($TaskName)"  
+                if ($DestinationFolderName) {
+                    $Result = Copy-Content -SourceList $SourceDocumentLibrary -DestinationList $DestinationDocumentLibrary -DestinationFolder $DestinationFolderName -InsaneMode -CopySettings $CopySettings -TaskName $TaskName -WarningAction SilentlyContinue -WhatIf
                 }
+                else {
+                    $Result = Copy-Content -SourceList $SourceDocumentLibrary -DestinationList $DestinationDocumentLibrary -InsaneMode -CopySettings $CopySettings -TaskName $TaskName -WarningAction SilentlyContinue -WhatIf               
+                }
+                $OneDriveResults | Add-Member -MemberType NoteProperty -Name "SyncType" -Value "Test-$CopyOperation"
+            }
+            else{
+                # Copy with Insane Mode
+                $TaskName = "$($CopyOperation) OneDrive Migration $($SourceAccountInfo) to $($DestinationAccountInfo)"
+                # Progress Bar Current 2
+                Write-Progress -Id 2 -Activity "$($TaskName)"
+                
+                if ($DestinationFolderName) {
+                    $Result = Copy-Content -SourceList $SourceDocumentLibrary -DestinationList $DestinationDocumentLibrary -DestinationFolder $DestinationFolderName -InsaneMode -CopySettings $CopySettings -TaskName $TaskName -WarningAction SilentlyContinue
+                }
+                else {
+                    $Result = Copy-Content -SourceList $SourceDocumentLibrary -DestinationList $DestinationDocumentLibrary -InsaneMode -CopySettings $CopySettings -TaskName $TaskName -WarningAction SilentlyContinue
+                }
+                $OneDriveResults | Add-Member -MemberType NoteProperty -Name "SyncType" -Value $CopyOperation
+
             }
         }
         # Add Job Result of Job 
@@ -394,37 +393,22 @@ function Start-ShareGateOneDriveMigration {
 
             #Check if connected to Correct Tenant
             try {
-                Get-OneDriveUrlForUser -TenantLocation Destination -UPN $DestinationAccountInfo -RequestOneDrive
-
-                $AdminCheck = Get-SPOUser -Site $OneDriveURL.ToString() -ErrorAction Stop
+                #Get-OneDriveUrlForUser -TenantLocation Destination -UPN $DestinationAccountInfo -RequestOneDrive
+                $AdminCheck = Get-SPOUser -Site $DstSiteUrl.ToString() -ErrorAction Stop
+                Write-Host "Migration Account is Already Site Admin for $DstSiteUrl" -ForegroundColor Yellow
             }
             catch {
-                #If failed, switch to TenantLocation Tenant
-                Write-Host ".. switching to $($TenantLocation) Tenant... " -foregroundcolor Yellow -NoNewline
-                Connect-SPOService $TenantAdminUrl -ModernAuth $true #-Credential $TenantCredentials -ErrorAction Stop
-            }
-
-            #add Destination Tenant Admin as Site Admin
-            try {
-                $global:RequestOneDrive = $null
-                $result = Set-SPOUser -Site $OneDriveURL -LoginName $global:TenantCredentials.username.ToString() -IsSiteCollectionAdmin $true -ErrorAction Stop
-                Write-Host "$($global:TenantCredentials.username.ToString()) Added as Site Admin." -ForegroundColor Green
-            }
-            catch {
-                Write-Host "Unable to Add Admin for $($DestinationAccountInfo)" -ForegroundColor Red
-                $FailedToAddAdminToOneDrive += $User
-                return $error[0]
-            }
-
-            try {
-                Connect-OneDriveForUser -OneDriveURL $DstSiteUrl -TenantLocation "Destination" -ErrorAction Stop
-                #Write-Host "Migration Account is Already Site Admin for $DstSiteUrl" -ForegroundColor Yellow
-
-            }
-            catch {
-                Write-Host $_.Exception.Message -ForegroundColor Red
-            }
-            
+                try {
+                    $global:RequestOneDrive = $null
+                    $result = Set-SPOUser -Site $OneDriveURL -LoginName $global:TenantCredentials.username.ToString() -IsSiteCollectionAdmin $true -ErrorAction Stop
+                    Write-Host "$($global:TenantCredentials.username.ToString()) Added as Site Admin." -ForegroundColor Green
+                }
+                catch {
+                    Write-Host "Unable to Add Admin for $($DestinationAccountInfo)" -ForegroundColor Red
+                    $FailedToAddAdminToOneDrive += $User
+                    return $error[0]
+                }
+            }            
         }
         "Migrate" {
             $global:RequestOneDrive = $null
