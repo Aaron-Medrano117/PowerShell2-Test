@@ -7,34 +7,27 @@ Download from the above link
 Import-Module 'C:\Program Files (x86)\BitTitan\BitTitan PowerShell\BitTitanPowerShell.dll'
 
 EXAMPLE: Gather all mailbox project stats for a customer
-Get-MigWizMailboxReport -CompanyName ProctorU -Credentials $credential
-
-Get-MigWizMailboxReport -CompanyName "FanDuel Group" -Credentials $credential
+Get-MigWizMailboxReport -SearchType CompanyName -SearchCriteria GopherMe
 
 EXAMPLE: Gather all mailbox project stats for a single project
-Get-MigWizMailboxReport - ProjectName "Fanduel 6 | T2T | AM" -Credentials $credential
+Get-MigWizMailboxReport -SearchType ProjectName -SearchCriteria "Gopher Me - Exchange 2010 to Office 365"
 
-EXAMPLE: Gather all mailbox project stats for a single project
-Get-MigWizMailboxReport -PrimaryDomain example.org -Credentials $credential
+EXAMPLE: Gather all mailbox project stats for a single domain
+Get-MigWizMailboxReport -SearchType PrimaryDomain -SearchCriteria example.org
 
-EXAMPLE: Gather all mailbox project stats for a single project and specify Output location
-Get-MigWizMailboxReport -CompanyName "FanDuel Group" -Credential $credentials -OutputCSVFilePath C:\Users\RSUSER\Desktop\MigrationWizProjectStats.csv 
+EXAMPLE: Gather all mailbox project stats for a customer and specify Output location
+Get-MigWizMailboxReport -SearchType CompanyName -SearchCriteria GopherMe -ExportFilePath C:\Users\RSUSER\Desktop\MigrationWizProjectStats.xlsx 
+
+Example: Gather all mailbox project stats using keywords. No export location specified.
+Get-MigWizMailboxReport -SearchType ProjectKeywords -SearchCriteria Lackawanna
 
 #>
 param (
-    [Parameter(Mandatory=$True,HelpMessage="Specify CompanyName from MigrationWiz Customer")] [string] $CompanyName,
-    [Parameter(Mandatory=$false,HelpMessage="Specify ProjectName from MigrationWiz Project")] [string] $ProjectName,
-    [Parameter(Mandatory=$false,HelpMessage="Specify Project KeyWords")] [string] $ProjectKeywords,
-    [Parameter(Mandatory=$false,HelpMessage="Specify PrimaryDomain from MigrationWiz Customer")] [string] $PrimaryDomain,
     [Parameter(Mandatory=$True)] 
     [System.Management.Automation.PSCredential] 
     [ValidateNotNull()]
     [System.Management.Automation.PSCredential]
-    [System.Management.Automation.Credential()] $Credentials,
-    [Parameter(Mandatory=$True)] [string] $ExportFilePath,
-    [Parameter(Mandatory=$True)] [string] $WorksheetName,
-    [Parameter(Mandatory=$false)] [Switch] $OverrideWorksheet,
-    [Parameter(Mandatory=$false)] [Switch] $AppendToWorkSheet
+    [System.Management.Automation.Credential()] $Credentials
 )
 $script:creds = $Credentials
 function Import-MigrationWizModule() {
@@ -257,13 +250,18 @@ function Convert-HashToArray {
 
 function Get-MigWizMailboxReport {
     param (
-        [Parameter(Mandatory=$True,HelpMessage="Specify CompanyName from MigrationWiz Customer")] [string] $CompanyName,
+        [Parameter(Mandatory=$True,HelpMessage="Specify the Search type for the export. Options are: ProjectName, ProjectKeywords, PrimaryDomain, CompanyName")] 
+        [ValidateSet('ProjectName', 'ProjectKeywords', 'PrimaryDomain', 'CompanyName')]
+        [string] $SearchType,
+        [Parameter(Mandatory=$True,HelpMessage="Provide the Search name for the desired projects for the export")] 
+        [string] $SearchCriteria,
+        [Parameter(Mandatory=$false,HelpMessage="Specify CompanyName from MigrationWiz Customer")] [string] $CompanyName,
         [Parameter(Mandatory=$false,HelpMessage="Specify ProjectName from MigrationWiz Project")] [string] $ProjectName,
         [Parameter(Mandatory=$false,HelpMessage="Specify Project KeyWords")] [string] $ProjectKeywords,
         [Parameter(Mandatory=$false,HelpMessage="Specify PrimaryDomain from MigrationWiz Customer")] [string] $PrimaryDomain,
-        [Parameter(Mandatory=$True)]
+        [Parameter(Mandatory=$False)]
         [String]$ExportFilePath,
-        [Parameter(Mandatory=$True)]
+        [Parameter(Mandatory=$False)]
         [String]$WorksheetName
     )
     $initialStart = Get-Date
@@ -274,18 +272,52 @@ function Get-MigWizMailboxReport {
     #Connect to BitTitan - Gather Tokens
     Connect-BitTitan
 
-    #Specify Single Project or All Projects for Customer
-
     #Gather all Customers and convert to Hash
-    #$startTime = Get-Date
     $allCustomers = Get-BT_Customer -Ticket $script:btTicket -RetrieveAll
     $allCustomersHash = @{}
-    #Write-Host "Completed all Customers in $((Get-Date) - $startTime)." -ForegroundColor Cyan
     foreach ($customer in $allCustomers) {
         $allCustomersHash[$customer.CompanyName.toString()] = $customer
     }
 
+    # Use a switch statement to handle the search based on the criteria
+    try {
+        switch ($searchType) {
+            "ProjectName" {
+                $allProjects = Get-MW_MailboxConnector -Ticket $script:mwTicket -name $SearchCriteria -ErrorAction stop
+                $customer = Get-BT_Customer -Ticket $script:btTicket -OrganizationId $allProjects.OrganizationId -ErrorAction stop
+            }
+            
+            "ProjectKeywords" {
+                #$customer = $allCustomersHash[$CompanyName]
+                $allProjects = Get-MW_MailboxConnector -Ticket $script:mwTicket -ErrorAction stop | ?{$_.name -like "*$SearchCriteria*"} | sort name
+            }
+            
+            "PrimaryDomain" {
+                $customer = Get-BT_Customer -Ticket $script:btTicket -PrimaryDomain $SearchCriteria -ErrorAction stop
+                $allProjects = Get-MW_MailboxConnector -Ticket $script:mwTicket -OrganizationId $customer.OrganizationId -ErrorAction stop | sort name
+            }
+            
+            "CompanyName" {
+                $customer = $allCustomersHash[$SearchCriteria]
+                $allProjects = Get-MW_MailboxConnector -Ticket $script:mwTicket -OrganizationId $customer.OrganizationId -ErrorAction stop | sort name
+            }
+            <#
+            Default {
+                $CompanyName = Read-Host "What is the CompanyName for MigrationWiz?"
+                $customer = $allCustomersHash[$CompanyName]
+                $allProjects = Get-MW_MailboxConnector -Ticket $script:mwTicket -OrganizationId $customer.OrganizationId -ErrorAction stop | sort name
+            }
+            #>
+        }
+        $AllProjectsHash = @{}
+    }
+    catch {
+        Write-Host "Failed finding MigrationWiz Project. Check Spelling of the project, company name, or primary domain.." -ForegroundColor Red
+    }
+
+
     #Gather All Mailbox Migration Jobs
+    <#
     try {
         if ($ProjectName)
         {
@@ -325,6 +357,8 @@ function Get-MigWizMailboxReport {
     catch {
         Write-Host "Failed finding MigrationWiz Project. Check Spelling of the project, company name, or primary domain.." -ForegroundColor Red
     }
+
+    #>
     
     try {
         # Get Mailboxes per connector
@@ -484,19 +518,20 @@ function Get-MigWizMailboxReport {
 	}
 	else {
 		try {
-			$MailboxProjectStatistics | Export-Excel "$HOME\Desktop\MigrationWizReport-Mailboxes.csv" -WorksheetName $WorksheetName
-			Write-host "Exported Migration Stats to $HOME\Desktop\MigrationWizReport-Mailboxes.csv" -ForegroundColor Cyan
+			$MailboxProjectStatistics | Export-Excel "$HOME\Desktop\MigrationWizReport-Mailboxes.xlsx" -WorksheetName $WorksheetName
+			Write-host "Exported Migration Stats to $HOME\Desktop\MigrationWizReport-Mailboxes.xlsx" -ForegroundColor Cyan
 		}
 		catch {
 			Write-Warning -Message "$($_.Exception)"
 			Write-host ""
 			$OutputCSVFolderPath = Read-Host 'INPUT Required: Where do you wish to save this file? Please provide full folder path'
             $WorksheetName2 = Read-Host 'INPUT Required: What WorkSheet Name do you wish to Use?'
-            $MailboxProjectStatisticsArray | Export-Excel "$OutputCSVFolderPath\MigrationWizReport-Mailboxes.csv" -WorksheetName $WorksheetName2
-            Write-host "Exported Migration Stats to $OutputCSVFolderPath\MigrationWizReport-Mailboxes.csv" -ForegroundColor Cyan
+            $MailboxProjectStatisticsArray | Export-Excel "$OutputCSVFolderPath\MigrationWizReport-Mailboxes.xlsx" -WorksheetName $WorksheetName2
+            Write-host "Exported Migration Stats to $OutputCSVFolderPath\MigrationWizReport-Mailboxes.xlsx" -ForegroundColor Cyan
 			
 		}
 	}
 }
 
-Get-MigWizMailboxReport -CompanyName $CompanyName -ExportFilePath $ExportFilePath -WorksheetName $WorksheetName
+Get-MigWizMailboxReport
+```
