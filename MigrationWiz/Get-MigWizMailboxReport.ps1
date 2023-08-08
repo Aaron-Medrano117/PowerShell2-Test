@@ -354,17 +354,6 @@ function Get-MigWizMailboxReport {
         [string] $SearchType,
         [Parameter(Mandatory=$True,HelpMessage="Provide the Search name for the desired projects for the export")] 
         [string] $SearchCriteria
-        
-        <#
-        [Parameter(Mandatory=$false,HelpMessage="Specify CompanyName from MigrationWiz Customer")] [string] $CompanyName,
-        [Parameter(Mandatory=$false,HelpMessage="Specify ProjectName from MigrationWiz Project")] [string] $ProjectName,
-        [Parameter(Mandatory=$false,HelpMessage="Specify Project KeyWords")] [string] $ProjectKeywords,
-        [Parameter(Mandatory=$false,HelpMessage="Specify PrimaryDomain from MigrationWiz Customer")] [string] $PrimaryDomain,
-        [Parameter(Mandatory=$False)]
-        [String]$ExportFilePath,
-        [Parameter(Mandatory=$False)]
-        [String]$WorksheetName
-        #>
     )
     $initialStart = Get-Date
 
@@ -403,13 +392,6 @@ function Get-MigWizMailboxReport {
                 $customer = $allCustomersHash[$SearchCriteria]
                 $allProjects = Get-MW_MailboxConnector -Ticket $script:mwTicket -OrganizationId $customer.OrganizationId -ErrorAction stop | sort name
             }
-            <#
-            Default {
-                $CompanyName = Read-Host "What is the CompanyName for MigrationWiz?"
-                $customer = $allCustomersHash[$CompanyName]
-                $allProjects = Get-MW_MailboxConnector -Ticket $script:mwTicket -OrganizationId $customer.OrganizationId -ErrorAction stop | sort name
-            }
-            #>
         }
         $AllProjectsHash = @{}
     }
@@ -417,49 +399,6 @@ function Get-MigWizMailboxReport {
         Write-Host "Failed finding MigrationWiz Project. Check Spelling of the project, company name, or primary domain.." -ForegroundColor Red
     }
 
-    #Gather All Mailbox Migration Jobs
-    <#
-    try {
-        if ($ProjectName)
-        {
-            $allProjects = Get-MW_MailboxConnector -Ticket $script:mwTicket -name $ProjectName -ErrorAction stop
-            $customer = Get-BT_Customer -Ticket $script:btTicket -OrganizationId $allProjects.OrganizationId -ErrorAction stop
-            $AllProjectsHash = @{}
-        }
-        elseif ($ProjectKeywords)
-        {
-            $customer = $allCustomersHash[$CompanyName]
-            #$customer = Get-BT_Customer -Ticket $script:btTicket -CompanyName $CompanyName -ErrorAction stop
-            $allProjects = Get-MW_MailboxConnector -Ticket $script:mwTicket -OrganizationId $customer.OrganizationId -ErrorAction stop | ?{$_.name -like "*$ProjectKeywords*"} | sort name
-            $AllProjectsHash = @{}
-        }
-        elseif ($PrimaryDomain)
-        {
-            $customer = Get-BT_Customer -Ticket $script:btTicket -PrimaryDomain $PrimaryDomain -ErrorAction stop
-            $allProjects = Get-MW_MailboxConnector -Ticket $script:mwTicket -OrganizationId $customer.OrganizationId -ErrorAction stop | sort name
-            $AllProjectsHash = @{}
-        }
-        elseif ($CompanyName)
-        {
-            $customer = $allCustomersHash[$CompanyName]
-            #$customer = Get-BT_Customer -Ticket $script:btTicket -CompanyName $CompanyName -ErrorAction stop
-            $allProjects = Get-MW_MailboxConnector -Ticket $script:mwTicket -OrganizationId $customer.OrganizationId -ErrorAction stop | sort name
-            $AllProjectsHash = @{}
-        }
-        else
-        {
-            $CompanyName = Read-Host "What is the CompanyName for MigrationWiz?"
-            $customer = $allCustomersHash[$CompanyName]
-            #$customer = Get-BT_Customer -Ticket $script:btTicket -CompanyName $CompanyName -ErrorAction stop
-            $allProjects = Get-MW_MailboxConnector -Ticket $script:mwTicket -OrganizationId $customer.OrganizationId -ErrorAction stop | sort name
-            $AllProjectsHash = @{}
-        }
-    }
-    catch {
-        Write-Host "Failed finding MigrationWiz Project. Check Spelling of the project, company name, or primary domain.." -ForegroundColor Red
-    }
-
-    #>
     try {
         # Get Mailboxes per connector
         Write-host "Gathering All Project(s) and Details .." -foregroundcolor cyan -nonewline
@@ -475,22 +414,9 @@ function Get-MigWizMailboxReport {
         Write-Host "Unable to Pull MigrationStats. Missing Requirements. Please Specify a PrimaryDomain, CompanyName, or a Project Name" -ForegroundColor red
         Return
     }
-    
-    <# $startTime = Get-Date
-    $allSpecifiedMailboxMigrations = Get-MW_MailboxMigration -Ticket $script:mwTicket -RetrieveAll -ConnectorId $allProjects.id -SortBy_CreateDate_Ascending
-    $allSpecifiedMailboxMigrations = @{}
-    Write-Host "Completed all MailboxMigrations in $((Get-Date) - $startTime)." -ForegroundColor Cyan
-    
-    $startTime = Get-Date
-    $allConnectors = Get-MW_MailboxConnector -Ticket $script:mwTicket -RetrieveAll
-    $AllMailboxConnectorsHash = @{}
-    Write-Host "Completed all MailConnectors in $((Get-Date) - $startTime)." -ForegroundColor Cyan
-    #>
 
-    #$startTime = Get-Date
     $AllImportStats = Get-MW_MailboxStat -Ticket $script:mwTicket -RetrieveAll -SortBy_CreateDate_Ascending
     $allMailboxMigrationStatsHash = @{}
-    #Write-Host "Completed all MailboxStats in $((Get-Date) - $startTime)." -ForegroundColor Cyan
 
     #Create Hash Tables for Mailbox Migration Jobs, Connectors, and Migration Stats
     foreach ($mailboxmigration in $allSpecifiedMailboxMigrations) {
@@ -595,49 +521,6 @@ function Get-MigWizMailboxReport {
     #Export Mailbox Migration Stats
     $ExportDetails = Get-ExportPath
     Export-DataToPath -fullPath $ExportDetails[0] -extension $ExportDetails[1] -data $MailboxProjectStatisticsArray
-    
-
-    <#
-    if ($ExportFilePath) {
-        try {
-            if ($OverrideWorksheet) {
-                $MailboxProjectStatisticsArray | Export-Excel -path $ExportFilePath -WorksheetName $WorksheetName -ClearSheet
-		        Write-host "Exported Migration Stats to $ExportFilePath" -ForegroundColor Cyan
-            }
-            elseif ($AppendToWorkSheet) {
-                $MailboxProjectStatisticsArray | Export-Excel -path $ExportFilePath -WorksheetName $WorksheetName -Append
-		        Write-host "Exported Migration Stats to $ExportFilePath" -ForegroundColor Cyan
-            }
-            else {
-                $MailboxProjectStatisticsArray | Export-Excel -path $ExportFilePath -WorksheetName $WorksheetName
-		        Write-host "Exported Migration Stats to $ExportFilePath" -ForegroundColor Cyan
-            }
-        }
-        Catch {
-            Write-Warning -Message "$($_.Exception)"
-			Write-host ""
-			$OutputCSVFolderPath = Read-Host 'INPUT Required: Where do you wish to save this file? Please provide full folder path'
-            $WorksheetName2 = Read-Host 'INPUT Required: What WorkSheet Name do you wish to Use?'
-            $MailboxProjectStatisticsArray | Export-Excel "$OutputCSVFolderPath\MigrationWizReport-Mailboxes.csv" -WorksheetName $WorksheetName2
-            Write-host "Exported Migration Stats to $OutputCSVFolderPath\MigrationWizReport-Mailboxes.csv" -ForegroundColor Cyan
-        }
-	}
-	else {
-		try {
-			$MailboxProjectStatistics | Export-Excel "$HOME\Desktop\MigrationWizReport-Mailboxes.xlsx" -WorksheetName $WorksheetName
-			Write-host "Exported Migration Stats to $HOME\Desktop\MigrationWizReport-Mailboxes.xlsx" -ForegroundColor Cyan
-		}
-		catch {
-			Write-Warning -Message "$($_.Exception)"
-			Write-host ""
-			$OutputCSVFolderPath = Read-Host 'INPUT Required: Where do you wish to save this file? Please provide full folder path'
-            $WorksheetName2 = Read-Host 'INPUT Required: What WorkSheet Name do you wish to Use?'
-            $MailboxProjectStatisticsArray | Export-Excel "$OutputCSVFolderPath\MigrationWizReport-Mailboxes.xlsx" -WorksheetName $WorksheetName2
-            Write-host "Exported Migration Stats to $OutputCSVFolderPath\MigrationWizReport-Mailboxes.xlsx" -ForegroundColor Cyan
-			
-		}
-	}
-    #>
 }
 
 
