@@ -1,3 +1,19 @@
+<#
+.synopsis
+    Creates a new Modern Authentication Application for Migration Wiz
+.DESCRIPTION
+    Creates a new Modern Authentication Application for Migration Wiz
+.EXAMPLE
+    New-MgGraphMigrationWizModernAuthAppRegistration -appName MigrationWiz-ModernAuth-EWS -migTenant Destination
+    Creates a new Modern Authentication Application for Migration Wizard for the Destination tenant
+.EXAMPLE
+    New-MgGraphMigrationWizModernAuthAppRegistration -appName MigrationWiz-ModernAuth-EWS -migTenant Source
+    Creates a new Modern Authentication Application for Migration Wizard for the Source tenant
+.NOTES
+
+
+#>
+
 function New-MgGraphMigrationWizModernAuthAppRegistration {
     param (
         [Parameter(Mandatory = $true, HelpMessage ="Provide a name for the Migration Wizard Modern Authentication Application. Example: MigrationWiz-ModernAuth-EWS")]
