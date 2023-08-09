@@ -525,4 +525,3 @@ function Get-MigWizMailboxReport {
 
 
 Get-MigWizMailboxReport
-```
